@@ -18,6 +18,66 @@ const endpoints = {
   positionsOfResponsibility: `https://docs.google.com/spreadsheets/d/${SHEET_ID}/pub?gid=1487468481&output=csv`
 };
 
+let loadingComplete = false;
+let dataLoaded = false;
+
+// Loading screen manager
+function initLoader() {
+  const loader = document.getElementById('loadingScreen');
+  const skipBtn = document.getElementById('skipLoader');
+  const minLoadTime = 2000; // Minimum 2 seconds
+  const maxLoadTime = 8000; // Auto-hide after 8 seconds
+  const startTime = Date.now();
+
+  // Show skip button after 2 seconds
+  setTimeout(() => {
+    if (!loadingComplete && skipBtn) {
+      skipBtn.style.display = 'inline-flex';
+    }
+  }, 2000);
+
+  // Auto-hide after max time
+  const autoHideTimeout = setTimeout(() => {
+    hideLoader();
+  }, maxLoadTime);
+
+  // Skip button handler
+  if (skipBtn) {
+    skipBtn.addEventListener('click', () => {
+      clearTimeout(autoHideTimeout);
+      hideLoader();
+    });
+  }
+
+  function hideLoader() {
+    if (loadingComplete) return;
+    loadingComplete = true;
+    
+    const elapsed = Date.now() - startTime;
+    const remainingTime = Math.max(0, minLoadTime - elapsed);
+    
+    setTimeout(() => {
+      if (loader) {
+        loader.classList.add('hidden');
+        setTimeout(() => {
+          loader.style.display = 'none';
+        }, 500);
+      }
+    }, remainingTime);
+  }
+
+  // Listen for data load completion
+  window.addEventListener('dataLoaded', () => {
+    dataLoaded = true;
+    const elapsed = Date.now() - startTime;
+    if (elapsed >= minLoadTime) {
+      hideLoader();
+    } else {
+      setTimeout(hideLoader, minLoadTime - elapsed);
+    }
+  });
+}
+
 function escapeHtml(s){ 
   return (s||"").replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); 
 }
@@ -286,10 +346,10 @@ function renderPositionsOfResponsibility(rows) {
 
 // Hero Header Section
 function renderHero(rows) {
-  console.log("renderHero called with rows:", rows);
+//   console.log("renderHero called with rows:", rows);
   
   const container = document.getElementById("hero");
-  console.log("Hero container:", container);
+//   console.log("Hero container:", container);
   
   if (!container || !rows.length) {
     console.log("No container or rows, returning");
@@ -297,7 +357,7 @@ function renderHero(rows) {
   }
   
   const data = rows[0];
-  console.log("Hero data:", data);
+//   console.log("Hero data:", data);
   
   const name = data.name || "Deepak Yadav";
   const role = data.role || data.designation || "Machine Learning & Data Science Engineer";
@@ -306,7 +366,7 @@ function renderHero(rows) {
   profileImg = convertGoogleDriveLink(profileImg);
   const resumeLink = data.resume_link || data.resume || "#";
 
-  console.log("Profile Image:", profileImg);
+//   console.log("Profile Image:", profileImg);
 
   const heroHTML = `
     <div class="hero-left">
@@ -347,7 +407,7 @@ function renderHero(rows) {
   `;
 
   container.innerHTML = heroHTML;
-  console.log("Hero rendered successfully");
+//   console.log("Hero rendered successfully");
 
   setTimeout(() => updateNavbarCTA(profileImg), 100);
 }
@@ -362,66 +422,53 @@ function updateNavbarCTA(profileImg) {
 
 // Navbar toggle
 document.addEventListener("DOMContentLoaded", () => {
+  initLoader(); // Start loader animation
+
   const navToggle = document.getElementById("navToggle");
   const navMenu = document.getElementById("navMenu");
+  const hamburger = document.getElementById("hamburger");
+  const navLinks = document.querySelectorAll(".nav-link, .navbar-link");
   
+  // Navbar toggle
   if (navToggle) {
     navToggle.addEventListener("click", () => {
-      navMenu.classList.toggle("active");
+      navMenu?.classList.toggle("active");
       navToggle.classList.toggle("active");
     });
   }
 
-  // Close menu on link click
-  const navLinks = document.querySelectorAll(".navbar-link");
-  navLinks.forEach(link => {
-    link.addEventListener("click", () => {
-      navMenu.classList.remove("active");
-      navToggle.classList.remove("active");
-    });
-  });
-
-  init();
-});
-
-// Mobile menu toggle
-document.addEventListener("DOMContentLoaded", () => {
-  const hamburger = document.getElementById("hamburger");
-  const navMenu = document.getElementById("navMenu");
-  const navLinks = document.querySelectorAll(".nav-link");
-
+  // Hamburger menu
   if (hamburger) {
     hamburger.addEventListener("click", () => {
       hamburger.classList.toggle("active");
-      navMenu.classList.toggle("active");
+      navMenu?.classList.toggle("active");
     });
   }
 
+  // Close menu on link click
   navLinks.forEach(link => {
     link.addEventListener("click", () => {
+      navMenu?.classList.remove("active");
+      navToggle?.classList.remove("active");
       hamburger?.classList.remove("active");
-      navMenu.classList.remove("active");
-    });
-
-    link.addEventListener("click", (e) => {
-      navLinks.forEach(l => l.classList.remove("active"));
-      link.classList.add("active");
     });
   });
 
+  // Handle window resize
   window.addEventListener("resize", () => {
     if (window.innerWidth > 768) {
       hamburger?.classList.remove("active");
-      navMenu.classList.remove("active");
+      navMenu?.classList.remove("active");
     }
   });
 
+  // Initialize portfolio data
   init();
 });
 
+
 // Initialize all sections
 async function init() {
-  console.log("init() called");
   try {
     const data = await Promise.all([
       fetchCSV(endpoints.details).catch(e => { console.error("Details fetch error:", e); return []; }),
@@ -435,8 +482,6 @@ async function init() {
       fetchCSV(endpoints.positionsOfResponsibility).catch(e => { console.error("Positions fetch error:", e); return []; })
     ]);
     
-    console.log("All data fetched:", data);
-    
     renderHero(data[0]);
     renderSummary(data[1]);
     renderSocialLinks(data[2]);
@@ -446,15 +491,17 @@ async function init() {
     renderEducation(data[6]);
     renderWorkExperience(data[7]);
     renderPositionsOfResponsibility(data[8]);
+
+    // Dispatch data loaded event
+    window.dispatchEvent(new Event('dataLoaded'));
   } catch (e) {
     console.error("Init error:", e);
+    // Still hide loader on error after min time
+    setTimeout(() => {
+      window.dispatchEvent(new Event('dataLoaded'));
+    }, 2000);
   }
 }
-
-document.addEventListener("DOMContentLoaded", () => {
-  console.log("DOM loaded, calling init()");
-  init();
-});
 
 function convertGoogleDriveLink(url) {
   if (!url || !url.includes("drive.google.com")) return url;

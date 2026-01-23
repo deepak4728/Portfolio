@@ -8,6 +8,50 @@
     <link rel="stylesheet" href="portfolio.css">
 </head>
 <body>
+    <!-- Loading Screen -->
+    <div id="loadingScreen" class="loading-screen">
+      <div class="loading-content">
+        <div class="ai-animation">
+          <div class="neural-network">
+            <div class="node-layer">
+              <div class="node"></div>
+              <div class="node"></div>
+              <div class="node"></div>
+            </div>
+            <div class="node-layer">
+              <div class="node"></div>
+              <div class="node"></div>
+              <div class="node"></div>
+              <div class="node"></div>
+            </div>
+            <div class="node-layer">
+              <div class="node"></div>
+              <div class="node"></div>
+              <div class="node"></div>
+            </div>
+          </div>
+          <svg class="connections" xmlns="http://www.w3.org/2000/svg">
+            <line class="connection-line" x1="0" y1="0" x2="0" y2="0"></line>
+          </svg>
+        </div>
+        <div class="loading-text">
+          <h2 class="loading-title">Loading Portfolio</h2>
+          <p class="loading-subtitle">Fetching data from the cloud...</p>
+          <div class="progress-bar">
+            <div class="progress-fill"></div>
+          </div>
+          <div class="data-stats">
+            <span class="stat"><span class="stat-icon">📊</span> Analyzing data...</span>
+            <span class="stat"><span class="stat-icon">🤖</span> Training models...</span>
+            <span class="stat"><span class="stat-icon">🚀</span> Optimizing performance...</span>
+          </div>
+        </div>
+        <button id="skipLoader" class="skip-btn" style="display: none;">
+          Skip <span class="skip-icon">→</span>
+        </button>
+      </div>
+    </div>
+
     <div class="page">
         <main class="main">
           <section id="hero" class="hero-card">
