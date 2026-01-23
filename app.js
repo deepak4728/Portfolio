@@ -1,44 +1,467 @@
-// code for updating profile summary dynamically
-let summary=document.querySelector("#summary");
-summary.innerHTML="\"Unleashing the power of AI & Data Science, I'm a second-year BE student making strides in Generative AI and Prompt Engineering. My ambition? To revolutionize Web Development by integrating it with advanced AI models. Driven by a deep passion for Data Science and an innovative problem-solving approach, <i>I'm not just studying the future, I'm creating it.</i>\"";
+/*
+  Replace SHEET_ID with your Google Sheet id.
+  Create separate sheets/tabs named: summary, projects, certs, tech
+  Publish the sheet (File → Share → Publish to web) and use:
+  https://docs.google.com/spreadsheets/d/SHEET_ID/export?format=csv&gid=GID
+*/
+// Extract only the Sheet ID from the URL
+const SHEET_ID = "e/2PACX-1vQLeY6fIQXDqb54z4MEodLxEslW2_Bu5N_xfNVpmP8J9ie5IDjCo-eNyonx3TxMB6x1cn9QX02_ToKR";
+const endpoints = {
+  summary: `https://docs.google.com/spreadsheets/d/${SHEET_ID}/pub?gid=0&output=csv`,
+  socialLinks: `https://docs.google.com/spreadsheets/d/${SHEET_ID}/pub?gid=546184029&output=csv`,
+  projects: `https://docs.google.com/spreadsheets/d/${SHEET_ID}/pub?gid=2043840442&output=csv`,
+  certificates: `https://docs.google.com/spreadsheets/d/${SHEET_ID}/pub?gid=682957323&output=csv`,
+  skills: `https://docs.google.com/spreadsheets/d/${SHEET_ID}/pub?gid=405041665&output=csv`,
+  education: `https://docs.google.com/spreadsheets/d/${SHEET_ID}/pub?gid=1434705904&output=csv`,
+  workExperience: `https://docs.google.com/spreadsheets/d/${SHEET_ID}/pub?gid=1922006196&output=csv`,
+  details: `https://docs.google.com/spreadsheets/d/${SHEET_ID}/pub?gid=851669658&single=true&output=csv`,
+  positionsOfResponsibility: `https://docs.google.com/spreadsheets/d/${SHEET_ID}/pub?gid=1487468481&output=csv`
+};
 
-// projects section code
-let projectStack=document.querySelector("#projectStack");
-let projectList=[["https://deepak4728.github.io/TechVerseX/","TechVerseX.png","<b><i>TechverseX</b></i> is a dynamic web platform that bridges the gap between aspiring students and valuable opportunities"],["https://github.com/deepak4728/StudyPods-v4.0/tree/main/SP0410","autoML.png","<b><i>AutoML</b></i> Simplifys Custom Model Creation. Data Profiling Highlights issues like missing values and outliers."]];
-for (let i=0; i<projectList.length; i++){
-    let div=document.createElement("div");
-    div.classList.add("card")
-    div.innerHTML=`<a class="flex" href="${projectList[i][0]}" target="_blank"><img class="certStackImg" src="static/projectStack/${projectList[i][1]}" alt="${projectList[i][2]}"><p>${projectList[i][2]}</p></a>`;
-    projectStack.appendChild(div);
+function escapeHtml(s){ 
+  return (s||"").replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); 
 }
 
-// code for updaing certifications dynamically
-let certStack=document.querySelector("#certStack");
-let certList=[["https://drive.google.com/file/d/10YwhjAWfkhyOvdjATsz2nfKyubacnEsQ/view?usp=sharing","excelda.jpg","Excel Fundamentals for Data Analysis | Coursera"],["https://drive.google.com/file/d/1-_g5k0iCaGBqZY3ttg-GDvQ5d3oTItme/view?usp=sharing","esrc.jpg","Embedded Systems and Robotics Club | MBM University"],["https://drive.google.com/file/d/16B1mRIpZQSQNmsS7is5Chbj6YpHRm_o4/view?usp=drive_link","iai.jpg","Artificial Intelligence | Infosys"],["https://drive.google.com/file/d/1RlMKQbzz_9LzKA3u7u_qzy5n2VlJVq5R/view?usp=drive_link","ids.jpg","Data Science | Infosys"],["https://drive.google.com/file/d/1rnbDx4jpSTWERVqfoWwDUhThJmtxJAqh/view?usp=drive_link","idl.jpg","Deep Learning | Infosys"],["https://drive.google.com/file/d/16Yn1MhJjdMKqlyf_9f-WKc16aXIzddxm/view?usp=drive_link","inlp.jpg","Natural Language Processing | Infosys"],["https://drive.google.com/file/d/18qWap5681E_go_RaUNobacC5HCzuwetq/view?usp=drive_link","icv.jpg","Computer Vision | Infosys"]];
-for(let i=0;i<certList.length;i++){
-    let div=document.createElement("div");
-    div.classList.add("card")
-    div.innerHTML=`<a class="flex" href="${certList[i][0]}" target="_blank"><img class="certStackImg" src="static/certStack/${certList[i][1]}" alt="${certList[i][2]}"><p>${certList[i][2]}</p></a>`;
-    certStack.appendChild(div);
+function escapeAttr(s){ 
+  return encodeURI(s||""); 
 }
 
-// code for updating skills TechStack dynamically
-let techStack=document.querySelector("#techStack");
-let skillSet=["c++.png","python.png","javaScript.png","mysql.png","html.png","css.png","bootstrap.png","git.png","github.png","excel.png","photoshop.png"];
-
-for(let i=0;i<skillSet.length;i++){
-    let img=document.createElement("img");
-    img.src=`static/techStack/${skillSet[i]}`;
-    img.alt=skillSet[i];
-    techStack.appendChild(img);
+// Handle newlines: convert \n to <br> and preserve line breaks
+function formatText(text) {
+  if (!text) return '';
+  // Escape HTML first
+  const escaped = escapeHtml(text);
+  // Convert \n, \r\n, and actual newlines to <br>
+  return escaped.replace(/\\n|\\r\\n|\r\n|\n/g, '<br>');
 }
 
-// code for updaing education dynamically
-let c=document.querySelector("#educationList");
-let education=["BE in AI & Data Science MBM University, Jodhpur: First Division (Nov 22 – July 23)","JNV, Khairthal, Alwar Class 12th (PCM + CS): First Division with Distinction (April 20–July 21)"];
-for(let i=0;i<education.length;i++){
-    let li=document.createElement("li");
-    li.innerHTML=education[i];
-    educationList.appendChild(li);
+async function fetchCSV(url) {
+  const res = await fetch(url);
+  if (!res.ok) throw new Error("Network error");
+  const text = await res.text();
+  return csvToObjects(text);
+}
+
+function csvToObjects(csv) {
+  // Split by newline but handle quoted fields properly
+  const rows = [];
+  let currentRow = [];
+  let currentField = "";
+  let inQuotes = false;
+
+  for (let i = 0; i < csv.length; i++) {
+    const char = csv[i];
+    const nextChar = csv[i + 1];
+
+    if (char === '"') {
+      if (inQuotes && nextChar === '"') {
+        currentField += '"';
+        i++;
+      } else {
+        inQuotes = !inQuotes;
+      }
+    } else if (char === "," && !inQuotes) {
+      currentRow.push(currentField.trim());
+      currentField = "";
+    } else if ((char === "\n" || char === "\r") && !inQuotes) {
+      if (currentField || currentRow.length > 0) {
+        currentRow.push(currentField.trim());
+        if (currentRow.some(f => f)) {
+          rows.push(currentRow);
+        }
+        currentRow = [];
+        currentField = "";
+      }
+      if (char === "\r" && nextChar === "\n") i++;
+    } else {
+      currentField += char;
+    }
+  }
+
+  if (currentField || currentRow.length > 0) {
+    currentRow.push(currentField.trim());
+    if (currentRow.some(f => f)) {
+      rows.push(currentRow);
+    }
+  }
+
+  if (rows.length < 2) return [];
+  
+  const headers = rows[0].map(h => h.replace(/^"|"$/g, ""));
+  return rows.slice(1).map(row => {
+    const obj = {};
+    headers.forEach((h, i) => {
+      obj[h] = (row[i] || "").replace(/^"|"$/g, "");
+    });
+    return obj;
+  });
+}
+
+function asHTML(val = "") {
+  const v = String(val).trim();
+  return v.includes("<") ? v : escapeHtml(v);
+}
+
+// Summary Section
+function renderSummary(rows) {
+  const el = document.getElementById("summary");
+  if (!el || !rows.length) return;
+  el.innerHTML = asHTML(rows[0].summary || rows[0].about || "");
+}
+
+// Social Links Section
+function renderSocialLinks(rows) {
+  const container = document.getElementById("socialLink");
+  if (!container) return;
+  container.innerHTML = `<div class="social-links">` + rows.map(r => {
+    const name = r.name || r.platform || "";
+    const link = r.link || r.url || "";
+    const icon = r.icon || r.image || "";
+    return `
+      <a href="${escapeAttr(link)}" target="_blank" rel="noopener" class="social-item" title="${escapeAttr(name)}">
+        <img src="${escapeAttr(icon)}" alt="${escapeAttr(name)}" class="social-icon">
+      </a>`;
+  }).join("") + `</div>`;
+}
+
+// Projects Section
+function renderProjects(rows) {
+  const container = document.getElementById("projects");
+  if (!container) return;
+
+  const cards = rows.map(r => {
+    const title = r.title || r.name || "";
+    const desc = r.description || r.desc || "";
+    const link = r.link || r.demo || r.github || "#";
+    const img = r.image || "https://via.placeholder.com/640x360?text=Project";
+
+    return `
+      <div class="card project-card">
+        <div class="project-media">
+          <img src="${img}" alt="${escapeAttr(title)}" loading="lazy">
+        </div>
+        <div class="project-header">
+          <h3>${asHTML(title)}</h3>
+          ${link && link !== "#" ? `<a rel="noopener" target="_blank" href="${escapeAttr(link)}" class="btn project-link">View</a>` : ""}
+        </div>
+        <div class="project-desc">${asHTML(desc)}</div>
+      </div>
+    `;
+  }).join("");
+
+  container.innerHTML = `
+    <div class="projects-grid">
+      ${cards}
+    </div>
+  `;
+}
+
+// (Optional) keep initProjectsMarquee unused or remove its calls elsewhere
+// Certificates Section
+function renderCertificates(rows) {
+  const container = document.getElementById("certificates");
+  if (!container) return;
+  container.innerHTML = rows.map(r => {
+    const name = r.name || r.title || "";
+    const issuer = r.issuer || r.provider || "";
+    const link = r.link || "";
+    const img = r.image;
+    return `
+      <div class="card cert-card">
+        <img src="${escapeAttr(img)}" alt="${escapeAttr(name)}" class="cert-img" loading="lazy">
+        <div class="cert-body">
+          <strong>${escapeHtml(name)}</strong>
+          ${issuer ? `<p class="issuer">${escapeHtml(issuer)}</p>` : ""}
+          ${link ? `<a target="_blank" rel="noopener" href="${escapeAttr(link)}" class="cert-link">View →</a>` : ""}
+        </div>
+      </div>`;
+  }).join("");
+}
+
+// Skills Section with Flip Card
+function renderSkills(rows) {
+  const container = document.getElementById("skills");
+  if (!container) return;
+  const half = Math.ceil(rows.length / 2);
+  const top = rows.slice(0, half);
+  const bottom = rows.slice(half);
+
+  const renderItem = (r) => {
+    const skill = r.Skill || r.tech || r.name || "Skill";
+    const img = r.link || r.image || "";
+    
+    let frontHTML = '';
+    if (img) {
+      frontHTML = `<img src="${escapeAttr(img)}" alt="${escapeAttr(skill)}" loading="lazy" style="width:70%; height:70%; object-fit:contain;">`;
+    } else {
+      frontHTML = `<div style="font-weight:600; color:#333;">${escapeHtml(skill)}</div>`;
+    }
+
+    return `
+      <div class="tech-card">
+        <div class="tech-inner">
+          <div class="tech-face tech-front">
+            ${frontHTML}
+          </div>
+          <div class="tech-face tech-back">
+            <div style="font-weight:700; color:#fff; font-size:0.95rem; text-align:center; padding:8px; word-wrap:break-word;">
+              ${escapeHtml(skill)}
+            </div>
+          </div>
+        </div>
+      </div>`;
+  };
+
+  const trackTop = top.map(renderItem).join("");
+  const trackBottom = bottom.map(renderItem).join("");
+  
+  container.innerHTML = `
+    <div class="marquee marquee-a"><div class="marquee-track">${trackTop}${trackTop}</div></div>
+    <div class="marquee marquee-b"><div class="marquee-track">${trackBottom}${trackBottom}</div></div>
+  `;
+}
+
+// Education Section
+function renderEducation(rows) {
+  const container = document.getElementById("education");
+  if (!container) return;
+  container.innerHTML = rows.map(r => {
+    const degree = r.degree || "";
+    const institution = r.institution || r.school || "";
+    const location = r.location || "";
+    const duration = r.duration || r.period || "";
+    const specialization = r.specialization || r.stream || "";
+    const grade = r.grade || "";
+    return `
+      <div class="edu-item">
+    <h3 class="edu-degree">${escapeHtml(degree)}</h3>
+    ${location ? `<div class="edu-location">📍 ${escapeHtml(location)}</div>` : ''}
+    <p class="edu-institution">${escapeHtml(institution)}</p>
+    <div class="edu-duration">${escapeHtml(duration)}</div>
+    <div class="edu-details">
+      ${specialization ? `<span class="edu-spec">${escapeHtml(specialization)}</span>` : ""}
+      ${grade ? `<span class="edu-grade-badge">${escapeHtml(grade)}</span>` : ""}
+    </div>
+  </div>`;
+  }).join("");
+}
+
+// Work Experience Section
+function renderWorkExperience(rows) {
+  const container = document.getElementById("workExperience");
+  if (!container) return;
+  container.innerHTML = rows.map(r => `
+    <div class="work-item">
+      <div class="work-header">
+        <div class="work-info">
+          <h3 class="work-title">${asHTML(r.title || "")}</h3>
+          <p class="work-company">${asHTML(r.company || "")}</p>
+          <p class="work-location">${asHTML(r.location || "")}</p>
+        </div>
+        <div class="work-duration">${escapeHtml(r.duration || "")}</div>
+      </div>
+      <div class="work-desc">${asHTML(r.description || r.desc || "")}</div>
+    </div>
+  `).join("");
+}
+
+// Positions of Responsibility Section
+function renderPositionsOfResponsibility(rows) {
+  const container = document.getElementById("positionsOfResponsibility");
+  if (!container) return;
+  
+  container.innerHTML = rows.map(r => `
+    <div class="work-item">
+      <div class="work-header">
+        <div class="work-info">
+          <h3 class="work-title">${asHTML(r.position || "")}</h3>
+          <p class="work-company">${asHTML(r.organisation || "")}</p>
+        </div>
+        <div class="work-duration">${escapeHtml(r.duration || "")}</div>
+      </div>
+      <div class="work-desc">${asHTML(r.description || "")}</div>
+    </div>
+  `).join("");
+}
+
+// Hero Header Section
+function renderHero(rows) {
+  console.log("renderHero called with rows:", rows);
+  
+  const container = document.getElementById("hero");
+  console.log("Hero container:", container);
+  
+  if (!container || !rows.length) {
+    console.log("No container or rows, returning");
+    return;
+  }
+  
+  const data = rows[0];
+  console.log("Hero data:", data);
+  
+  const name = data.name || "Deepak Yadav";
+  const role = data.role || data.designation || "Machine Learning & Data Science Engineer";
+  const status = data.status || "Open to work / Hiring engagements";
+  let profileImg = data.profile_image || data.image || "https://via.placeholder.com/120?text=Profile";
+  profileImg = convertGoogleDriveLink(profileImg);
+  const resumeLink = data.resume_link || data.resume || "#";
+
+  console.log("Profile Image:", profileImg);
+
+  const heroHTML = `
+    <div class="hero-left">
+      <div class="hero-avatar">
+        <img src="${escapeAttr(profileImg)}" alt="Profile" loading="lazy">
+      </div>
+      <div class="hero-meta">
+        <p class="hero-kicker">Hi, I'm</p>
+        <h1 class="hero-name">${escapeHtml(name)}</h1>
+        <p class="hero-role">${escapeHtml(role)}</p>
+        <div class="hero-status">
+          <span class="status-dot"></span>
+          <span>${escapeHtml(status)}</span>
+        </div>
+        ${resumeLink !== "#" ? `<a href="${escapeAttr(resumeLink)}" target="_blank" rel="noopener" class="btn hero-btn">Download Resume</a>` : ""}
+      </div>
+    </div>
+    <div class="hero-right">
+      <h2 class="hero-heading">Have an idea? Let's Connect!</h2>
+      <a href="#contact" class="animated-cta">
+        <div class="cta-content">
+          <span class="cta-text">BOOK A CALL</span>
+        </div>
+        <div class="cta-hover">
+          <div class="circles-wrapper">
+            <div class="circle circle-left">
+              <img src="${escapeAttr(profileImg)}" alt="You" loading="lazy">
+            </div>
+            <div class="circle-plus">+</div>
+            <div class="circle circle-right">
+              <span>YOU</span>
+            </div>
+          </div>
+          <span class="cta-hover-text">LET'S TALK!</span>
+        </div>
+      </a>
+    </div>
+  `;
+
+  container.innerHTML = heroHTML;
+  console.log("Hero rendered successfully");
+
+  setTimeout(() => updateNavbarCTA(profileImg), 100);
+}
+
+function updateNavbarCTA(profileImg) {
+  const navCTA = document.querySelector(".nav-cta");
+  if (!navCTA) return;
+
+  navCTA.innerHTML = `Let's Connect`;
+  navCTA.href = "#contact";
+}
+
+// Navbar toggle
+document.addEventListener("DOMContentLoaded", () => {
+  const navToggle = document.getElementById("navToggle");
+  const navMenu = document.getElementById("navMenu");
+  
+  if (navToggle) {
+    navToggle.addEventListener("click", () => {
+      navMenu.classList.toggle("active");
+      navToggle.classList.toggle("active");
+    });
+  }
+
+  // Close menu on link click
+  const navLinks = document.querySelectorAll(".navbar-link");
+  navLinks.forEach(link => {
+    link.addEventListener("click", () => {
+      navMenu.classList.remove("active");
+      navToggle.classList.remove("active");
+    });
+  });
+
+  init();
+});
+
+// Mobile menu toggle
+document.addEventListener("DOMContentLoaded", () => {
+  const hamburger = document.getElementById("hamburger");
+  const navMenu = document.getElementById("navMenu");
+  const navLinks = document.querySelectorAll(".nav-link");
+
+  if (hamburger) {
+    hamburger.addEventListener("click", () => {
+      hamburger.classList.toggle("active");
+      navMenu.classList.toggle("active");
+    });
+  }
+
+  navLinks.forEach(link => {
+    link.addEventListener("click", () => {
+      hamburger?.classList.remove("active");
+      navMenu.classList.remove("active");
+    });
+
+    link.addEventListener("click", (e) => {
+      navLinks.forEach(l => l.classList.remove("active"));
+      link.classList.add("active");
+    });
+  });
+
+  window.addEventListener("resize", () => {
+    if (window.innerWidth > 768) {
+      hamburger?.classList.remove("active");
+      navMenu.classList.remove("active");
+    }
+  });
+
+  init();
+});
+
+// Initialize all sections
+async function init() {
+  console.log("init() called");
+  try {
+    const data = await Promise.all([
+      fetchCSV(endpoints.details).catch(e => { console.error("Details fetch error:", e); return []; }),
+      fetchCSV(endpoints.summary).catch(e => { console.error("Summary fetch error:", e); return []; }),
+      fetchCSV(endpoints.socialLinks).catch(e => { console.error("Social links fetch error:", e); return []; }),
+      fetchCSV(endpoints.projects).catch(e => { console.error("Projects fetch error:", e); return []; }),
+      fetchCSV(endpoints.certificates).catch(e => { console.error("Certificates fetch error:", e); return []; }),
+      fetchCSV(endpoints.skills).catch(e => { console.error("Skills fetch error:", e); return []; }),
+      fetchCSV(endpoints.education).catch(e => { console.error("Education fetch error:", e); return []; }),
+      fetchCSV(endpoints.workExperience).catch(e => { console.error("Work experience fetch error:", e); return []; }),
+      fetchCSV(endpoints.positionsOfResponsibility).catch(e => { console.error("Positions fetch error:", e); return []; })
+    ]);
+    
+    console.log("All data fetched:", data);
+    
+    renderHero(data[0]);
+    renderSummary(data[1]);
+    renderSocialLinks(data[2]);
+    renderProjects(data[3]);
+    renderCertificates(data[4]);
+    renderSkills(data[5]);
+    renderEducation(data[6]);
+    renderWorkExperience(data[7]);
+    renderPositionsOfResponsibility(data[8]);
+  } catch (e) {
+    console.error("Init error:", e);
+  }
+}
+
+document.addEventListener("DOMContentLoaded", () => {
+  console.log("DOM loaded, calling init()");
+  init();
+});
+
+function convertGoogleDriveLink(url) {
+  if (!url || !url.includes("drive.google.com")) return url;
+  const fileIdMatch = url.match(/[?&]id=([a-zA-Z0-9-_]+)/);
+  if (fileIdMatch) {
+    return `https://lh3.googleusercontent.com/d/${fileIdMatch[1]}=w400`;
+  }
+  return url;
 }
 

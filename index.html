@@ -6,88 +6,118 @@
     <title>Portfolio Website</title>
     <link rel="icon" type="image" href="static/dee.png">
     <link rel="stylesheet" href="portfolio.css">
-    
 </head>
 <body>
     <div class="page">
-       <header class="flex" id="header">
-            <aside id="middle">
-                <a href="#"><img class="icons" src="static/icons/home.png" alt="Home"  title="Home"></a>
-                <a href="#workExperience"><img class="icons" src="static/icons/workexperience.png" alt="Work Experience" title="Work Experience"></a>
-                <a href="#projects"><img class="icons" src="static/icons/project.png" alt="Projects" title="Projects"></a>
-                <a href="#certificates"><img class="icons" src="static/icons/certificate.png" alt="Certificates" title="Certificates"></a>
-                <a href="#skills"><img class="icons" src="static/icons/skills.png" alt="Skills"  title="Skills"></a>
-                <a href="#education"><img class="icons" src="static/icons/education.png" alt="Education" title="Education"></a>
-                <a href="#achievements"><img class="icons" src="static/icons/achievement.png" alt="Achievements" title="Achievements"></a>
-                <a href="#contact"><img class="icons" src="static/icons/contact_us.png" alt="Contact" title="Contact"></a>
-
-            </aside>
-        </header>
-
         <main class="main">
-            
-            <section class="flex" id="profile">
-                <div class="flex" id="profileIntro">
-                    <h1 id="greet">Hi there! I am Deepak </h1>
-                    <h1 id="tag">As
-                        <ul>
-                            <li>AI Enthusiast</li>
-                            <li>Data Analyst</li>
-                            <li>Web Developer</li>
-                            <li>Graphic Designer</li>
-                        </ul>
-                    </h1>
-                    <p id="summary"></p>
-                    <div class="flex" id="socialLink">
-                        <a rel="noopener" href="https://www.linkedin.com/in/deepak4728" target="_blank"><img class="icons" src="static/icons/linkedin.png" alt="LinkedIn" title="LinkedIn"></a>
-                        <a rel="noopener" href="https://github.com/deepak4728" target="_blank"><img class="icons" src="static/icons/github.png" alt="GitHub" title="GitHub"></a>
-                        <a rel="noopener" href="https://www.instagram.com/dee_yad_0355/" target="_blank"><img class="icons" src="static/icons/instagram.png" alt="Instagram" title="Instagram"></a>
-                        <a rel="noopener" href="https://www.youtube.com/@thefutureinfocus" target="_blank"><img class="icons" src="static/icons/youtube.png" alt="Youtube" title="Youtube"></a>
-                        <a rel="noopener" href="https://whatsapp.com/channel/0029Va5EtHv5PO0tR9mCHN11" target="_blank"><img class="icons" src="static/icons/whatsapp.png" alt="Whatsapp" title="Whatsapp"></a>
-                        <!-- <a href="" target="_blank"><img class="icons" src="static/icons/" alt="" title=""></a> -->
-                    </div>
-                    <a rel="noopener" href="https://drive.google.com/file/d/1moiyxuWuIkYmvQnukcX4CZMQxx2uQv04/view?usp=sharing" target="_blank">
-                        <button type="submit" id="resume">Resume</button>
-                    </a>
-                </div>
-                <div class="flex" id="profilePhoto">
-                    <img src="static/dee.png" alt="">
-                </div>
-            </section>
-            <section class="" id="workExperience"></section>
-            <section class="" id="projects">
-                <h2>Projects</h2>
-                <div class="flex wrapper" id="projectStack"></div>
-            </section>
-            <section class="" id="certificates">
-                <h2>Certificates</h2>
-                <div class="flex wrapper" id="certStack"></div>
-            </section>
-            <section class="" id="skills">
-                <h2>Tech Stack</h2>
-                <div class="flex" id="techStack"></div>
-            </section>
-            <section class="" id="education"></section>
-            <section class="" id="achievements"></section>
-            <section class="flex" id="contact">
-                <h3>Let's connect!</h3>
-                <div class="flex" id="contactStack">
-                    <div class="flex">
-                        <!-- <label for="name">Name</label> -->
-                        <input type="text" id="name" placeholder="Name">
+          <section id="hero" class="hero-card">
+            <!-- Content will be populated by JS -->
+          </section>
 
-                        <!-- <label for="email">Email</label> -->
-                        <input type="email" id="email" placeholder="Email">
+          <section id="profileSection">
+            <div id="profile">
+              <div class="profile-text">
+                <p class="intro-greeting">Hi, I'm <strong>Deepak Yadav</strong> 👋</p>
+                <div id="summary"></div>
+              </div>
+              <div id="socialLink"></div>
+            </div>
+          </section>
 
-                        <!-- <label for="message">Message</label> -->
-                        <textarea rows="2" cols="5" type="text" id="message" placeholder="Message"></textarea>
-                    </div>
-                    <button>Submit</button>
+            <section id="workExperienceSection">
+  <div class="section-head">
+    <h2>Work Experience</h2>
+    <div class="section-line"></div>
+  </div>
+  <div id="workExperience"></div>
+</section>
+
+<section id="projectsSection">
+  <div class="section-head">
+    <h2>Projects</h2>
+    <div class="section-line"></div>
+  </div>
+  <div id="projects"></div>
+</section>
+
+<section id="certificatesSection">
+  <div class="section-head">
+    <h2>Certificates</h2>
+    <div class="section-line"></div>
+  </div>
+  <div id="certificates"></div>
+</section>
+
+<section id="skillsSection">
+  <div class="section-head">
+    <h2>Skills</h2>
+    <div class="section-line"></div>
+  </div>
+  <div id="skills"></div>
+</section>
+
+<section id="educationSection">
+  <div class="section-head">
+    <h2>Education</h2>
+    <div class="section-line"></div>
+  </div>
+  <div id="education"></div>
+</section>
+
+<section id="positionsOfResponsibilitySection">
+  <div class="section-head">
+    <h2>Positions of Responsibility</h2>
+    <div class="section-line"></div>
+  </div>
+  <div id="positionsOfResponsibility"></div>
+</section>
+<section id="contact">
+  <div class="section-head">
+    <h2>Contact</h2>
+    <div class="section-line"></div>
+  </div>
+              <form class="contact-form">
+                <div class="form-row">
+                  <input type="text" name="name" placeholder="Your Name" required>
+                  <input type="email" name="email" placeholder="Your Email" required>
                 </div>
+                <textarea name="message" rows="4" placeholder="Your Message" required></textarea>
+                <button type="submit" class="btn">Send Message</button>
+              </form>
             </section>
-            <h5 class="description">This template is made by Deepak</h5>
        </main>
     </div>
+    <header class="bottom-nav">
+  <div class="bottom-nav__bar">
+    <div class="bottom-nav__links">
+      <a href="#profileSection" class="nav-pill" title="Home">
+        <img src="https://cdn.jsdelivr.net/npm/lucide-static@0.296.0/icons/home.svg" alt="Home">
+        <span>Home</span>
+      </a>
+      <a href="#workExperienceSection" class="nav-pill" title="Experience">
+        <img src="https://cdn.jsdelivr.net/npm/lucide-static@0.296.0/icons/briefcase.svg" alt="Work">
+        <span>Work</span>
+      </a>
+      <a href="#projectsSection" class="nav-pill" title="Projects">
+        <img src="https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/github/github-original.svg" alt="Projects">
+        <span>Projects</span>
+      </a>
+      <a href="#skillsSection" class="nav-pill" title="Skills">
+        <img src="https://cdn.jsdelivr.net/npm/lucide-static@0.296.0/icons/code.svg" alt="Skills">
+        <span>Skills</span>
+      </a>
+      <a href="#educationSection" class="nav-pill" title="Education">
+        <img src="https://cdn.jsdelivr.net/npm/lucide-static@0.296.0/icons/graduation-cap.svg" alt="Education">
+        <span>Education</span>
+      </a>
+      <a href="#certificatesSection" class="nav-pill" title="Certificates">
+        <img src="https://cdn.jsdelivr.net/npm/lucide-static@0.296.0/icons/award.svg" alt="Certificates">
+        <span>Certs</span>
+      </a>
+    </div>
+    <a class="nav-cta" href="#contact" title="Contact">Let's Connect</a>
+  </div>
+</header>
 <script src="app.js"></script>
 </body>
 </html>

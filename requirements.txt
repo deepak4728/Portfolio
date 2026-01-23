@@ -1,0 +1,10 @@
+# Core Django framework
+Django==5.2.4
+
+# Database support (if needed beyond SQLite)
+# psycopg2-binary==2.9.7  # PostgreSQL
+# mysqlclient==2.2.0      # MySQL
+
+# TensorFlow option:
+# tensorflow==2.13.0
+# keras==2.13.1
