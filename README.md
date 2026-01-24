@@ -1,6 +1,6 @@
 # Dynamic Portfolio Website
 
-![Portfolio Screenshot](static/preview.png)
+![Portfolio Screenshot](static/preview.tiff)
 
 ## Overview
 A fully dynamic, Google Sheets-powered portfolio website that showcases skills, projects, work experience, and achievements. Built with vanilla JavaScript and modern CSS animations, this portfolio automatically updates content from Google Sheets without requiring code changes.
@@ -188,3 +188,4 @@ This project is open source and available under the [MIT License](LICENSE).
 **Made with ❤️ and ☕ | Last Updated: January 2026**
 
 ⭐ Star this repo if you find it helpful!
+
