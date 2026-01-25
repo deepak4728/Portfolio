@@ -416,7 +416,6 @@ function renderHero(rows) {
             <div class="circle circle-left">
               <img src="${escapeAttr(profileImg)}" alt="You" loading="lazy">
             </div>
-            <div class="circle-plus">+</div>
             <div class="circle circle-right">
               <span>YOU</span>
             </div>
