@@ -12,38 +12,44 @@
     <div id="loadingScreen" class="loading-screen">
       <div class="loading-content">
         <div class="ai-animation">
-          <div class="neural-network">
-            <div class="node-layer">
-              <div class="node"></div>
-              <div class="node"></div>
-              <div class="node"></div>
+          <!-- Moving Rocket/Spaceship -->
+          <div class="floating-rocket">🚀</div>
+          
+          <!-- Journey Path -->
+          <div class="journey-path">
+            <div class="journey-node" style="--node-pos: 0%;">
+              <span class="node-icon">🎨</span>
+              <span class="node-label">Design</span>
             </div>
-            <div class="node-layer">
-              <div class="node"></div>
-              <div class="node"></div>
-              <div class="node"></div>
-              <div class="node"></div>
+            <div class="journey-node" style="--node-pos: 50%;">
+              <span class="node-icon">💡</span>
+              <span class="node-label">Ideate</span>
             </div>
-            <div class="node-layer">
-              <div class="node"></div>
-              <div class="node"></div>
-              <div class="node"></div>
+            <div class="journey-node" style="--node-pos: 100%;">
+              <span class="node-icon">🔗</span>
+              <span class="node-label">Connect</span>
             </div>
           </div>
-          <svg class="connections" xmlns="http://www.w3.org/2000/svg">
-            <line class="connection-line" x1="0" y1="0" x2="0" y2="0"></line>
-          </svg>
+
+          <!-- Particles -->
+          <div class="particles">
+            <div class="particle"></div>
+            <div class="particle"></div>
+            <div class="particle"></div>
+            <div class="particle"></div>
+            <div class="particle"></div>
+          </div>
         </div>
         <div class="loading-text">
-          <h2 class="loading-title">Loading Portfolio</h2>
-          <p class="loading-subtitle">Fetching data from the cloud...</p>
+          <h2 class="loading-title">Welcome to My Portfolio</h2>
+          <p class="loading-subtitle">Loading your experience...</p>
           <div class="progress-bar">
             <div class="progress-fill"></div>
           </div>
           <div class="data-stats">
-            <span class="stat"><span class="stat-icon">📊</span> Analyzing data...</span>
-            <span class="stat"><span class="stat-icon">🤖</span> Training models...</span>
-            <span class="stat"><span class="stat-icon">🚀</span> Optimizing performance...</span>
+            <span class="stat"><span class="stat-icon">🎨</span> Designing experience...</span>
+            <span class="stat"><span class="stat-icon">💡</span> Showcasing work...</span>
+            <span class="stat"><span class="stat-icon">🔗</span> Connecting everything...</span>
           </div>
         </div>
         <button id="skipLoader" class="skip-btn" style="display: none;">
@@ -120,15 +126,84 @@
     <h2>Contact</h2>
     <div class="section-line"></div>
   </div>
-              <form class="contact-form">
-                <div class="form-row">
-                  <input type="text" name="name" placeholder="Your Name" required>
-                  <input type="email" name="email" placeholder="Your Email" required>
-                </div>
-                <textarea name="message" rows="4" placeholder="Your Message" required></textarea>
-                <button type="submit" class="btn">Send Message</button>
-              </form>
-            </section>
+
+  <div class="contact-grid">
+    <div class="contact-card">
+      <h3>Let's talk</h3>
+      <p class="contact-lead">Have a project, role, or collaboration in mind? I'd love to hear about it.</p>
+      <div class="contact-actions">
+        <a class="contact-pill" href="mailto:dy19363@gmail.com">📧 Email</a>
+        <a class="contact-pill" href="https://www.linkedin.com/in/deepak4728" target="_blank" rel="noopener">💼 LinkedIn</a>
+        <a class="contact-pill" href="tel:+916378947089">📞 Call</a>
+      </div>
+      <div class="contact-meta">
+        <div class="meta-row">
+          <span>Location</span>
+          <strong>Jodhpur, India</strong>
+        </div>
+        <div class="meta-row">
+          <span>Response time</span>
+          <strong>Under 24 hours</strong>
+        </div>
+      </div>
+    </div>
+
+    <!-- Google Form Direct Submit -->
+    <form class="contact-form" 
+          action="https://docs.google.com/forms/d/e/1FAIpQLSdKpzZCRoPdtvGFdCX-iDPi5PD6J02-Hk9p01cGZTHLlINavQ/formResponse" 
+          method="POST" 
+          target="_blank">
+      
+      <div class="form-row">
+        <div class="form-group">
+          <label for="name">Full Name</label>
+          <input type="text" 
+                 id="name"
+                 name="entry.2005620554" 
+                 placeholder="Your Name" 
+                 required>
+        </div>
+        <div class="form-group">
+          <label for="email">Email Address</label>
+          <input type="email" 
+                 id="email"
+                 name="entry.276605624" 
+                 placeholder="your@email.com" 
+                 required>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label for="phone">Phone Number</label>
+        <input type="tel" 
+               id="phone"
+               name="entry.1166974658" 
+               placeholder="+91 XXXXXXXXXX" 
+               required>
+      </div>
+
+      <div class="form-group">
+        <label for="subject">Subject</label>
+        <input type="text" 
+               id="subject"
+               name="entry.2093224432" 
+               placeholder="What is this about?" 
+               required>
+      </div>
+
+      <div class="form-group">
+        <label for="message">Message</label>
+        <textarea id="message"
+                  name="entry.839337160" 
+                  rows="4" 
+                  placeholder="Your message here..." 
+                  required></textarea>
+      </div>
+
+      <button type="submit" class="btn">Send Message</button>
+    </form>
+  </div>
+</section>
        </main>
     </div>
     <header class="bottom-nav">
@@ -146,6 +221,10 @@
         <img src="https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/github/github-original.svg" alt="Projects">
         <span>Projects</span>
       </a>
+      <a href="#certificatesSection" class="nav-pill" title="Certificates">
+        <img src="https://cdn.jsdelivr.net/npm/lucide-static@0.296.0/icons/award.svg" alt="Certificates">
+        <span>Certs</span>
+      </a>
       <a href="#skillsSection" class="nav-pill" title="Skills">
         <img src="https://cdn.jsdelivr.net/npm/lucide-static@0.296.0/icons/code.svg" alt="Skills">
         <span>Skills</span>
@@ -154,14 +233,26 @@
         <img src="https://cdn.jsdelivr.net/npm/lucide-static@0.296.0/icons/graduation-cap.svg" alt="Education">
         <span>Education</span>
       </a>
-      <a href="#certificatesSection" class="nav-pill" title="Certificates">
-        <img src="https://cdn.jsdelivr.net/npm/lucide-static@0.296.0/icons/award.svg" alt="Certificates">
-        <span>Certs</span>
-      </a>
+
     </div>
     <a class="nav-cta" href="#contact" title="Contact">Let's Connect</a>
   </div>
 </header>
+
+<!-- Floating CTA for Mobile -->
+<a href="#contact" class="nav-cta-floating" title="Contact">
+  💬 Let's Connect
+</a>
+
+<!-- WhatsApp Channel Button -->
+<a href="https://whatsapp.com/channel/0029Va5EtHv5PO0tR9mCHN11" 
+  class="whatsapp-btn" 
+  target="_blank" 
+  rel="noopener"
+  title="Join our WhatsApp Channel">
+  <img src="https://upload.wikimedia.org/wikipedia/commons/6/6b/WhatsApp.svg" alt="WhatsApp" width="24" height="24">
+</a>
+
 <script src="app.js"></script>
 </body>
 </html>

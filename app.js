@@ -25,16 +25,17 @@ let dataLoaded = false;
 function initLoader() {
   const loader = document.getElementById('loadingScreen');
   const skipBtn = document.getElementById('skipLoader');
-  const minLoadTime = 2000; // Minimum 2 seconds
+  const minLoadTime = 3000; // Minimum 3 seconds for animation
   const maxLoadTime = 8000; // Auto-hide after 8 seconds
   const startTime = Date.now();
 
-  // Show skip button after 2 seconds
+  // Show skip button after 1.5 seconds (let animation play)
   setTimeout(() => {
     if (!loadingComplete && skipBtn) {
       skipBtn.style.display = 'inline-flex';
+      skipBtn.textContent = 'Continue →';
     }
-  }, 2000);
+  }, 1500);
 
   // Auto-hide after max time
   const autoHideTimeout = setTimeout(() => {
@@ -70,10 +71,9 @@ function initLoader() {
   window.addEventListener('dataLoaded', () => {
     dataLoaded = true;
     const elapsed = Date.now() - startTime;
+    // Only hide if minimum time has passed
     if (elapsed >= minLoadTime) {
       hideLoader();
-    } else {
-      setTimeout(hideLoader, minLoadTime - elapsed);
     }
   });
 }
@@ -285,24 +285,45 @@ function renderSkills(rows) {
 function renderEducation(rows) {
   const container = document.getElementById("education");
   if (!container) return;
+
+  const logos = {
+    jnv: "static/education/jnv.png",
+    mbm: "static/education/mbm.gif",
+  };
+
+  const getLogo = (institution = "") => {
+    const inst = institution.toLowerCase();
+    if (inst.includes("jnv") || inst.includes("jawahar") || inst.includes("navodaya")) return logos.jnv;
+    if (inst.includes("mbm")) return logos.mbm;
+    return null;
+  };
+
   container.innerHTML = rows.map(r => {
-    const degree = r.degree || "";
-    const institution = r.institution || r.school || "";
+    const degree = r.degree || r.qualification || "";
+    const institution = r.institution || r.college || r.school || "";
+    const specialization = r.specialization || r.branch || r.stream || "";
     const location = r.location || "";
-    const duration = r.duration || r.period || "";
-    const specialization = r.specialization || r.stream || "";
-    const grade = r.grade || "";
+    const grade = r.grade || r.percentage || r.cgpa || "";
+    const duration = r.duration || r.period || r.year || "";
+    const description = r.description || r.desc || "";
+    const logo = getLogo(institution);
+
     return `
-      <div class="edu-item">
-    <h3 class="edu-degree">${escapeHtml(degree)}</h3>
-    ${location ? `<div class="edu-location">📍 ${escapeHtml(location)}</div>` : ''}
-    <p class="edu-institution">${escapeHtml(institution)}</p>
-    <div class="edu-duration">${escapeHtml(duration)}</div>
-    <div class="edu-details">
-      ${specialization ? `<span class="edu-spec">${escapeHtml(specialization)}</span>` : ""}
-      ${grade ? `<span class="edu-grade-badge">${escapeHtml(grade)}</span>` : ""}
-    </div>
-  </div>`;
+      <div class="education-card">
+        ${logo ? `<img src="${escapeAttr(logo)}" alt="${escapeAttr(institution)}" class="education-logo">` : ""}
+        <div class="education-grid">
+          <h3 class="edu-degree">${asHTML(degree)}</h3>
+          <span class="duration-badge">${escapeHtml(duration)}</span>
+
+          <p class="edu-institution">${asHTML(institution)}</p>
+          ${location ? `<p class="edu-location">📍 ${asHTML(location)}</p>` : `<span class="edu-location"></span>`}
+
+          ${specialization ? `<p class="edu-spec">${asHTML(specialization)}</p>` : `<span class="edu-spec"></span>`}
+          ${grade ? `<p class="edu-grade">🎯 ${asHTML(grade)}</p>` : `<span class="edu-grade"></span>`}
+        </div>
+        ${description ? `<div class="edu-description">${asHTML(description)}</div>` : ""}
+      </div>
+    `;
   }).join("");
 }
 
@@ -511,4 +532,21 @@ function convertGoogleDriveLink(url) {
   }
   return url;
 }
+
+// Show/hide floating CTA based on screen size
+function toggleFloatingCTA() {
+  const floatingCTA = document.querySelector('.nav-cta-floating');
+  if (!floatingCTA) return;
+  
+  if (window.innerWidth <= 768) {
+    floatingCTA.style.display = 'block';
+  } else {
+    floatingCTA.style.display = 'none';
+  }
+}
+
+document.addEventListener("DOMContentLoaded", () => {
+  toggleFloatingCTA();
+  window.addEventListener('resize', toggleFloatingCTA);
+});
 
