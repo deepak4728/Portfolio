@@ -15,7 +15,7 @@
 
 body{
     background-color: rgb(255, 255, 255);
-    padding: 1px 10%;
+    padding: 10px 10%;
 }
 
 section{
@@ -772,6 +772,7 @@ section h2, .section-head h2 {
 }
 
 /* ==================== PROJECTS ==================== */
+
 #projects .projects-grid {
   display: flex;
   flex-direction: row;
@@ -786,7 +787,7 @@ section h2, .section-head h2 {
   flex-direction: column;
   justify-content: space-between;
   padding: 10px;
-  margin: 20px;
+  margin: 12px;
   background: #fff;
   border-radius: 16px;
   box-shadow: 0 6px 18px rgba(0,0,0,0.08);
@@ -795,16 +796,18 @@ section h2, .section-head h2 {
   max-width: 560px;
   min-width: 280px;
   transition: transform 0.25s ease, box-shadow 0.25s ease;
+  box-sizing: border-box;
 }
 
 .project-card:hover {
-  transform: translateY(-4px) scale(1.01);
+  transform: scale(1.01);
   box-shadow: 0 10px 24px rgba(0,0,0,0.12);
+  transition: transform 0.8s ease, box-shadow 0.8s ease;
 }
 
 .project-media {
   width: 100%;
-  height: 280px;
+  height: 80%;
   aspect-ratio: 16 / 9;
   overflow: hidden;
   background: linear-gradient(135deg, #eef2f7 0%, #e2e8f0 100%);
@@ -819,6 +822,7 @@ section h2, .section-head h2 {
   object-fit: cover;
   object-position: center;
   display: block;
+  border-radius: 10px;
 }
 
 .project-header {
@@ -828,6 +832,18 @@ section h2, .section-head h2 {
   gap: 12px;
   padding: 14px 16px 8px;
   flex-wrap: wrap;
+  height: 10%;
+}
+
+.project-desc {
+  padding: 0 16px 16px;
+  color: #334155;
+  /* line-height: 1.5; */
+  font-size: 0.95rem;
+  height: 0%;
+  opacity: 0;
+  overflow:visible;
+  transition: max-height 0.25s ease, opacity 0.25s ease, margin-top 0.25s ease;
 }
 
 .project-header h3 {
@@ -853,25 +869,32 @@ section h2, .section-head h2 {
 }
 
 .project-link:hover {
-  transform: translateY(-1px);
+  transform: translateY(-1px) scale(1.01);
+
   box-shadow: 0 6px 14px rgba(0,123,255,0.35);
 }
 
-.project-desc {
-  padding: 0 16px 16px;
-  color: #334155;
-  line-height: 1.5;
-  font-size: 0.95rem;
-  max-height: 0;
-  opacity: 0;
-  overflow: hidden;
-  transition: max-height 0.25s ease, opacity 0.25s ease, margin-top 0.25s ease;
-}
 
+/* Project card hover effect */
+
+.project-card:hover .project-media{
+    height: auto;
+    padding: 10px;
+    margin: auto;
+    transition: height 0.8s ease, padding 0.8s ease;
+}
+.project-card:hover .project-header{
+    height: auto;
+    padding: 10px;
+    /* margin: auto; */
+    transition: height 0.8s ease, padding 0.8s ease;
+}
 .project-card:hover .project-desc {
-  max-height: 260px;
+  margin: auto;
+  padding: 10px;
+  height: auto;
   opacity: 1;
-  margin-top: 6px;
+  transition: height 0.8s ease, opacity 0.8s ease, padding 0.8s ease;
 }
 
 /* ==================== CERTIFICATES ==================== */
