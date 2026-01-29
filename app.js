@@ -24,36 +24,10 @@ let dataLoaded = false;
 // Loading screen manager
 function initLoader() {
   const loader = document.getElementById('loadingScreen');
-  const skipBtn = document.getElementById('skipLoader');
   const minLoadTime = 3000; // Minimum 3 seconds for animation
-  const maxLoadTime = 8000; // Auto-hide after 8 seconds
   const startTime = Date.now();
 
-  // Show skip button after 1.5 seconds (let animation play)
-  setTimeout(() => {
-    if (!loadingComplete && skipBtn) {
-      skipBtn.style.display = 'inline-flex';
-      skipBtn.textContent = 'Continue →';
-    }
-  }, 1500);
-
-  // Auto-hide after max time
-  const autoHideTimeout = setTimeout(() => {
-    hideLoader();
-  }, maxLoadTime);
-
-  // Skip button handler
-  if (skipBtn) {
-    skipBtn.addEventListener('click', () => {
-      clearTimeout(autoHideTimeout);
-      hideLoader();
-    });
-  }
-
   function hideLoader() {
-    if (loadingComplete) return;
-    loadingComplete = true;
-    
     const elapsed = Date.now() - startTime;
     const remainingTime = Math.max(0, minLoadTime - elapsed);
     
@@ -67,14 +41,9 @@ function initLoader() {
     }, remainingTime);
   }
 
-  // Listen for data load completion
+  // Listen for data load completion and hide loader
   window.addEventListener('dataLoaded', () => {
-    dataLoaded = true;
-    const elapsed = Date.now() - startTime;
-    // Only hide if minimum time has passed
-    if (elapsed >= minLoadTime) {
-      hideLoader();
-    }
+    hideLoader();
   });
 }
 
@@ -242,9 +211,6 @@ function renderCertificates(rows) {
 function renderSkills(rows) {
   const container = document.getElementById("skills");
   if (!container) return;
-  const half = Math.ceil(rows.length / 2);
-  const top = rows.slice(0, half);
-  const bottom = rows.slice(half);
 
   const renderItem = (r) => {
     const skill = r.Skill || r.tech || r.name || "Skill";
@@ -272,13 +238,7 @@ function renderSkills(rows) {
       </div>`;
   };
 
-  const trackTop = top.map(renderItem).join("");
-  const trackBottom = bottom.map(renderItem).join("");
-  
-  container.innerHTML = `
-    <div class="marquee marquee-a"><div class="marquee-track">${trackTop}${trackTop}</div></div>
-    <div class="marquee marquee-b"><div class="marquee-track">${trackBottom}${trackBottom}</div></div>
-  `;
+  container.innerHTML = rows.map(renderItem).join("");
 }
 
 // Education Section
@@ -543,6 +503,8 @@ function toggleFloatingCTA() {
     floatingCTA.style.display = 'none';
   }
 }
+
+
 
 document.addEventListener("DOMContentLoaded", () => {
   toggleFloatingCTA();
