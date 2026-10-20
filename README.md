@@ -1,24 +1,48 @@
 # Deepak Yadav — Portfolio
 
-A responsive React portfolio that reads profile content from published Google Sheets tabs. The page includes an introduction, experience, projects, certificates, skills, education, leadership, and contact form.
+A responsive portfolio for Deepak Yadav, a machine learning and data science engineer. It brings profile, experience, selected projects, certificates, skills, education, community work, and contact details into one page.
 
-The interface includes an interactive data-to-model-to-impact workflow, project filters by discipline, scroll-aware navigation, a reading progress indicator, and a saved light/dark theme preference. Motion respects the reduced-motion setting.
+## Highlights
+
+- Responsive layout with floating glass navigation and section-aware active states
+- Interactive machine learning workflow and project filters
+- Accessible project detail dialogs and workflow controls powered by Radix UI
+- Scroll progress, section reveals, and motion that respects the reduced-motion preference
+- Persistent light and dark themes, using a cool ink-blue and cyan palette with a small lime accent
+- Profile content loaded from published Google Sheets tabs
+- Contact form connected to Google Forms, with email and LinkedIn alternatives
+
+## Tech stack
+
+- React
+- Vite
+- Radix UI Dialog and Toggle Group
+- CSS
 
 ## Run locally
+
+Install dependencies and start the development server:
 
 ```sh
 npm install
 npm run dev
 ```
 
-Create an optimized build with `npm run build`; preview it locally with `npm run preview`.
+Create and preview a production build:
+
+```sh
+npm run build
+npm run preview
+```
+
+Vite writes the static production site to `dist/`.
 
 ## Portfolio content
 
-The sheet ID and tab IDs are configured in [`src/data.js`](src/data.js). The spreadsheet must be published to the web as CSV. The app loads each tab independently and keeps the rest of the page available if a tab cannot be reached.
+The published spreadsheet ID and tab IDs are configured in [`src/data.js`](src/data.js). The spreadsheet must be published to the web as CSV. The app requests each tab independently and keeps the rest of the page available when a tab cannot be loaded.
 
-The configured tabs are Summary, Social Links, Projects, Certificates, Skills, Education, Work Experience, Details, and Positions of Responsibility.
+Configured tabs: Summary, Social Links, Projects, Certificates, Skills, Education, Work Experience, Details, and Positions of Responsibility.
 
 ## Deployment
 
-The Vite build outputs a static site in `dist/`, suitable for GitHub Pages or another static host. Configure the host to serve the built `index.html` and assets.
+Deploy the contents of `dist/` to a static host. When serving from a subpath, configure Vite's `base` option to match that path before building. Keep the deployed root pointed at the generated `index.html` and its assets.
