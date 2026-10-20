@@ -1,7 +1,10 @@
 import React, { useEffect, useRef, useState } from "react";
 import { createRoot } from "react-dom/client";
+import * as Dialog from "@radix-ui/react-dialog";
+import * as ToggleGroup from "@radix-ui/react-toggle-group";
 import { field, imageUrl, loadPortfolio } from "./data.js";
 import profileFallback from "../static/dee.png";
+import { SegmentedControl } from "./components/ui/segmented-control.jsx";
 import "../portfolio.css";
 
 const safeTags = new Set(["P", "B", "STRONG", "EM", "I", "BR", "UL", "OL", "LI", "A"]);
@@ -103,8 +106,8 @@ function Hero({ detail }) {
       <div className="hero-actions"><a className="button button--dark" href="#projects">Explore my work</a>{resume && <a className="text-link" href={externalUrl(resume)} target="_blank" rel="noreferrer">Download résumé</a>}</div>
       <div className="availability"><span className="availability-dot"/><span>{status}</span></div>
     </div>
-    <div className="hero-visual"><div className="hero-orbit hero-orbit--one"/><div className="hero-orbit hero-orbit--two"/><div className="hero-portrait"><img src={avatar} alt={`${name}`} fetchPriority="high" onError={(event) => { event.currentTarget.src = profileFallback; }}/></div><div className="hero-stamp"><span>THOUGHTFUL<br/>BY DESIGN</span><span className="stamp-star">✳</span></div><span className="hero-index">01 / 06</span>
-      <div className="hero-lab" aria-label="Interactive machine learning workflow"><div className="hero-lab__top"><span><i/> THE BUILD LOOP</span><span>ML / DS</span></div><div className="lab-steps" role="group" aria-label="Explore the build loop">{stages.map((item, index) => <React.Fragment key={item.mark}><button type="button" className={`lab-step ${stage === index ? "is-active" : ""}`} aria-pressed={stage === index} onClick={() => setStage(index)}><span>{item.mark}</span>{item.label}</button>{index < stages.length - 1 && <span className="lab-connector" aria-hidden="true"/>}</React.Fragment>)}</div><p key={stage} className="lab-caption"><span>0{stage + 1}</span> {stages[stage].detail}</p><div className="lab-wave" aria-hidden="true"><svg viewBox="0 0 300 36" preserveAspectRatio="none"><path d="M0 20 C20 20 24 7 42 8 S64 28 82 21 102 6 119 13 140 31 158 19 176 4 194 11 213 29 230 19 249 7 266 13 284 24 300 15"/><path d="M0 31 C25 29 30 22 48 23 S72 33 91 27 113 17 130 23 148 31 168 27 187 17 205 21 227 32 244 27 270 21 300 23"/></svg></div></div>
+    <div className="hero-visual"><div className="hero-orbit hero-orbit--one"/><div className="hero-orbit hero-orbit--two"/><div className="hero-portrait"><img src={avatar} alt={`${name}`} fetchPriority="high" onError={(event) => { event.currentTarget.src = profileFallback; }}/></div><div className="hero-tech-cloud" aria-label="Areas of focus"><span className="hero-tech-tile hero-tech-tile--ml"><b>ML</b><span>Machine learning</span></span><span className="hero-tech-tile hero-tech-tile--cv"><b>CV</b><span>Computer vision</span></span><span className="hero-tech-tile hero-tech-tile--data"><b>DS</b><span>Data science</span></span></div><div className="hero-stamp"><span>THOUGHTFUL<br/>BY DESIGN</span><span className="stamp-star">✳</span></div><span className="hero-index">01 / 06</span>
+      <div className="hero-lab" aria-label="Interactive machine learning workflow"><div className="hero-lab__top"><span><i/> THE BUILD LOOP</span><span>ML / DS</span></div><ToggleGroup.Root type="single" value={String(stage)} onValueChange={(value) => { if (value !== "") setStage(Number(value)); }} className="lab-steps" aria-label="Explore the build loop">{stages.map((item, index) => <React.Fragment key={item.mark}><ToggleGroup.Item value={String(index)} className="lab-step"><span>{item.mark}</span>{item.label}</ToggleGroup.Item>{index < stages.length - 1 && <span className="lab-connector" aria-hidden="true"/>}</React.Fragment>)}</ToggleGroup.Root><p key={stage} className="lab-caption" aria-live="polite"><span>0{stage + 1}</span> {stages[stage].detail}</p><div className="lab-wave" aria-hidden="true"><svg viewBox="0 0 300 36" preserveAspectRatio="none"><path d="M0 20 C20 20 24 7 42 8 S64 28 82 21 102 6 119 13 140 31 158 19 176 4 194 11 213 29 230 19 249 7 266 13 284 24 300 15"/><path d="M0 31 C25 29 30 22 48 23 S72 33 91 27 113 17 130 23 148 31 168 27 187 17 205 21 227 32 244 27 270 21 300 23"/></svg></div></div>
     </div>
     <div className="hero-bottom"><span>SCROLL TO EXPLORE</span><span className="scroll-line"/><span>JODHPUR, INDIA · IST</span></div>
   </section>;
@@ -125,18 +128,64 @@ function Experience({ rows = [] }) {
   </section>;
 }
 
+const projectTechnologies = ["Python", "TensorFlow", "PyTorch", "OpenCV", "Django", "ResNet50", "CNN", "Gemini", "Next.js", "Zustand", "ChromaDB", "SVM", "YOLO"];
+
+function classifyProject(item) {
+  const text = `${field(item, "title", "name")} ${field(item, "description", "desc")}`.toLowerCase();
+  if (/computer vision|yoga pose|vegetable classification|entity value prediction|image-based/.test(text)) return "Computer vision";
+  if (/bank management|account types|transaction ledger/.test(text)) return "Software engineering";
+  return "AI & ML";
+}
+
+function ProjectDetailsDialog({ title, category, description, technologies, link }) {
+  return <Dialog.Root>
+    <Dialog.Trigger asChild><button className="project-info__trigger" type="button">Details</button></Dialog.Trigger>
+    <Dialog.Portal container={document.querySelector(".app-shell") || undefined}>
+      <Dialog.Overlay className="project-dialog-overlay" />
+      <Dialog.Content className="project-dialog">
+        <Dialog.Close className="project-dialog__close" type="button" aria-label="Close project details"><span aria-hidden="true">×</span></Dialog.Close>
+        <p className="project-dialog__eyebrow">{category} · SELECTED WORK</p>
+        <Dialog.Title asChild><RichText className="project-dialog__title" value={title} /></Dialog.Title>
+        <Dialog.Description asChild><RichText className="project-dialog__description" value={description || "Project details are coming soon."} /></Dialog.Description>
+        {technologies.length > 0 && <div className="project-dialog__technologies" aria-label="Technologies used">{technologies.map((technology) => <span key={technology}>{technology}</span>)}</div>}
+        <div className="project-dialog__actions">
+          {link && <a className="button button--dark" href={externalUrl(link)} target="_blank" rel="noreferrer">Open project</a>}
+          <Dialog.Close asChild><button className="project-dialog__dismiss" type="button">Close details</button></Dialog.Close>
+        </div>
+      </Dialog.Content>
+    </Dialog.Portal>
+  </Dialog.Root>;
+}
+
+function ProjectCard({ item, index }) {
+  const title = field(item, "title", "name") || "Untitled project";
+  const link = field(item, "link", "demo", "github");
+  const image = field(item, "image");
+  const description = field(item, "description", "desc");
+  const category = classifyProject(item);
+  const text = `${title} ${description}`;
+  const technologies = projectTechnologies.filter((technology) => new RegExp(technology, "i").test(text)).slice(0, 4);
+
+  return <article className="project-card">
+    <div className={`project-art project-art--${index % 4}`}>
+      <span className="project-number">0{String(index + 1).padStart(2, "0")}</span>
+      {image ? <img src={image} alt="" loading="lazy"/> : <div className={`project-shape project-shape--${index % 3}`} aria-hidden="true"><svg viewBox="0 0 180 120"><path d="M12 92 C38 90 35 33 62 48 S83 104 103 70 125 22 146 44 159 78 168 28"/><circle cx="62" cy="48" r="3"/><circle cx="103" cy="70" r="3"/><circle cx="146" cy="44" r="3"/></svg><span>{category === "Computer vision" ? "VISION" : "MODEL"}</span></div>}
+    </div>
+    <div className="project-info">
+      <div><p className="project-type">{category.toUpperCase()} · {String(index + 1).padStart(2, "0")}</p><RichText className="project-title" value={title}/></div>
+      <ProjectDetailsDialog title={title} category={category} description={description} technologies={technologies} link={link}/>
+    </div>
+    <RichText className="project-description" value={description}/>
+    {technologies.length > 0 && <div className="project-tech" aria-label="Technologies">{technologies.map((technology) => <span key={technology}>{technology}</span>)}</div>}
+  </article>;
+}
+
 function Projects({ rows = [] }) {
   const [filter, setFilter] = useState("All work");
   const filters = ["All work", "AI & ML", "Computer vision", "Software engineering"];
-  const classify = (item) => {
-    const text = `${field(item, "title", "name")} ${field(item, "description", "desc")}`.toLowerCase();
-    if (/computer vision|yoga pose|vegetable classification|entity value prediction|image-based/.test(text)) return "Computer vision";
-    if (/bank management|account types|transaction ledger/.test(text)) return "Software engineering";
-    return "AI & ML";
-  };
-  const visibleRows = rows.filter((item) => filter === "All work" || classify(item) === filter);
+  const visibleRows = rows.filter((item) => filter === "All work" || classifyProject(item) === filter);
   return <section className="content-section projects-section" id="projects"><SectionHeading number="03" eyebrow="SELECTED WORK" title="Projects." note="A few things I’ve made along the way."/>
-    {rows.length ? <><div className="project-controls"><div className="project-filters" role="group" aria-label="Filter projects">{filters.map((option) => <button key={option} className={filter === option ? "is-selected" : ""} type="button" aria-pressed={filter === option} onClick={() => setFilter(option)}>{option}</button>)}</div><span className="project-count"><b>{String(visibleRows.length).padStart(2,"0")}</b> / {String(rows.length).padStart(2,"0")} CASES</span></div><div className="project-grid" aria-live="polite">{visibleRows.map((item) => { const sourceIndex = rows.indexOf(item); const title = field(item,"title","name") || "Untitled project"; const link = field(item,"link","demo","github"); const image = field(item,"image"); const description = field(item,"description","desc"); const text = `${title} ${description}`; const technologies = ["Python", "TensorFlow", "PyTorch", "OpenCV", "Django", "ResNet50", "CNN", "Gemini", "Next.js", "Zustand", "ChromaDB", "SVM", "YOLO"].filter((technology) => new RegExp(technology, "i").test(text)).slice(0, 4); return <article className="project-card" key={title}><div className={`project-art project-art--${sourceIndex % 4}`}><span className="project-number">0{String(sourceIndex + 1).padStart(2,"0")}</span>{image ? <img src={image} alt="" loading="lazy"/> : <div className={`project-shape project-shape--${sourceIndex % 3}`} aria-hidden="true"><svg viewBox="0 0 180 120"><path d="M12 92 C38 90 35 33 62 48 S83 104 103 70 125 22 146 44 159 78 168 28"/><circle cx="62" cy="48" r="3"/><circle cx="103" cy="70" r="3"/><circle cx="146" cy="44" r="3"/></svg><span>{classify(item) === "Computer vision" ? "VISION" : classify(item) === "AI products" ? "SYSTEM" : "MODEL"}</span></div>}</div><div className="project-info"><div><p className="project-type">{classify(item).toUpperCase()} · {String(sourceIndex + 1).padStart(2,"0")}</p><RichText className="project-title" value={title}/></div>{link && <a href={externalUrl(link)} target="_blank" rel="noreferrer" aria-label={`View ${title.replace(/<[^>]*>/g, "")}`}>View project</a>}</div><RichText className="project-description" value={description}/>{technologies.length > 0 && <div className="project-tech" aria-label="Technologies">{technologies.map((technology) => <span key={technology}>{technology}</span>)}</div>}</article>; })}</div></> : <EmptyState/>}
+    {rows.length ? <><div className="project-controls"><SegmentedControl className="project-filters" itemClassName="project-filters__item" label="Filter projects" value={filter} onValueChange={setFilter} items={filters.map((option) => ({ value: option, label: option }))}/><span className="project-count"><b>{String(visibleRows.length).padStart(2, "0")}</b> / {String(rows.length).padStart(2, "0")} CASES</span></div><div className="project-grid" aria-live="polite">{visibleRows.map((item) => <ProjectCard key={field(item, "title", "name") || item.id} item={item} index={rows.indexOf(item)}/>)}</div></> : <EmptyState/>}
   </section>;
 }
 
@@ -224,7 +273,7 @@ function App() {
     }, { rootMargin: "-22% 0px -68% 0px" });
     sections.forEach((section) => observer.observe(section));
     const revealObserver = new IntersectionObserver((entries, currentObserver) => {
-      entries.forEach((entry) => { if (entry.isIntersecting) { entry.target.classList.add("in-view"); currentObserver.unobserve(entry.target); } });
+      entries.forEach((entry) => { if (entry.isIntersecting) { const index = [...entry.target.parentElement.children].indexOf(entry.target); entry.target.style.setProperty("--reveal-delay", `${Math.min(Math.max(index, 0), 5) * 65}ms`); entry.target.classList.add("in-view"); currentObserver.unobserve(entry.target); } });
     }, { threshold: 0.08 });
     const motionObserver = new IntersectionObserver((entries) => {
       entries.forEach((entry) => {
