@@ -2,8 +2,8 @@ import React, { useEffect, useRef, useState } from "react";
 import { createRoot } from "react-dom/client";
 import * as Dialog from "@radix-ui/react-dialog";
 import * as ToggleGroup from "@radix-ui/react-toggle-group";
-import { field, imageUrl, loadPortfolio } from "./data.js";
-import profileFallback from "../static/dee.png";
+import { field, loadPortfolio } from "./data.js";
+const profileFallback = "/deepak-profile.png";
 import { SegmentedControl } from "./components/ui/segmented-control.jsx";
 import "../portfolio.css";
 
@@ -87,7 +87,7 @@ function Hero({ detail }) {
   const name = field(detail, "name") || "Deepak Yadav";
   const role = field(detail, "role", "designation") || "Machine Learning & Data Science Engineer";
   const status = field(detail, "status") || "Open to opportunities";
-  const avatar = imageUrl(field(detail, "profile_image", "image")) || profileFallback;
+  const avatar = profileFallback;
   const resume = field(detail, "resume_link", "resume");
   const stages = [
     { label: "Data", detail: "Find the signal in the noise.", mark: "01" },
