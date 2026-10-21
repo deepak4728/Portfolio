@@ -45,4 +45,6 @@ Configured tabs: Summary, Social Links, Projects, Certificates, Skills, Educatio
 
 ## Deployment
 
-Deploy the contents of `dist/` to a static host. When serving from a subpath, configure Vite's `base` option to match that path before building. Keep the deployed root pointed at the generated `index.html` and its assets.
+The Vite build is configured for the repository's GitHub Pages path, `/Portfolio/`. The `Deploy portfolio to GitHub Pages` workflow builds and publishes the site on pushes to `main`. In the repository's Pages settings, set the publishing source to **GitHub Actions**. The React portfolio is served at `/Portfolio/`; the restored static version is included alongside it at `/Portfolio/legacy-portfolio/`.
+
+The Vercel build keeps root-relative assets for its deployment domain. The GitHub Pages build uses the repository subpath.
