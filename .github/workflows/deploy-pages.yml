@@ -31,6 +31,8 @@ jobs:
         run: npm ci
       - name: Build site
         run: npm run build
+      - name: Prepare GitHub Pages redirect
+        run: npm run pages:prepare
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v4
         with:
