@@ -203,6 +203,28 @@ function ProjectDetailsDialog({ title, category, description, technologies, link
   </Dialog.Root>;
 }
 
+function projectSummary(description = "") {
+  const parsed = new DOMParser().parseFromString(safeMarkup(description).__html, "text/html");
+  const text = parsed.body.textContent.replace(/\s+/g, " ").trim();
+  const firstSentence = text.split(/(?<=[.!?])\s+(?=[A-Z])/)[0];
+  const words = firstSentence.split(/\s+/);
+  return words.length > 32 ? `${words.slice(0, 32).join(" ").replace(/[,;:]$/, "")}…` : firstSentence;
+}
+
+function tiltCard(event) {
+    if (event.pointerType !== "mouse" || !window.matchMedia("(hover: hover) and (pointer: fine) and (prefers-reduced-motion: no-preference)").matches) return;
+    const card = event.currentTarget;
+    const bounds = card.getBoundingClientRect();
+    const x = Math.max(-.5, Math.min(.5, (event.clientX - bounds.left) / bounds.width - .5));
+    const y = Math.max(-.5, Math.min(.5, (event.clientY - bounds.top) / bounds.height - .5));
+    card.style.setProperty("--tilt-x", `${(-y * 7).toFixed(2)}deg`);
+    card.style.setProperty("--tilt-y", `${(x * 7).toFixed(2)}deg`);
+}
+function resetTilt(event) {
+    event.currentTarget.style.removeProperty("--tilt-x");
+    event.currentTarget.style.removeProperty("--tilt-y");
+}
+
 function ProjectCard({ item, index }) {
   const title = field(item, "title", "name") || "Untitled project";
   const link = field(item, "link", "demo", "github");
@@ -212,7 +234,9 @@ function ProjectCard({ item, index }) {
   const text = `${title} ${description}`;
   const technologies = projectTechnologies.filter((technology) => new RegExp(technology, "i").test(text)).slice(0, 4);
 
-  return <article className="project-card">
+
+
+  return <article className="project-card" onPointerMove={tiltCard} onPointerLeave={resetTilt} onPointerCancel={resetTilt}>
     <div className={`project-art project-art--${index % 4}`}>
       <span className="project-number">0{String(index + 1).padStart(2, "0")}</span>
       {image ? <img src={image} alt="" loading="lazy"/> : <div className={`project-shape project-shape--${index % 3}`} aria-hidden="true"><svg viewBox="0 0 180 120"><path d="M12 92 C38 90 35 33 62 48 S83 104 103 70 125 22 146 44 159 78 168 28"/><circle cx="62" cy="48" r="3"/><circle cx="103" cy="70" r="3"/><circle cx="146" cy="44" r="3"/></svg><span>{category === "Computer vision" ? "VISION" : "MODEL"}</span></div>}
@@ -221,7 +245,7 @@ function ProjectCard({ item, index }) {
       <div><p className="project-type">{category.toUpperCase()} · {String(index + 1).padStart(2, "0")}</p><RichText className="project-title" value={title}/></div>
       <ProjectDetailsDialog title={title} category={category} description={description} technologies={technologies} link={link}/>
     </div>
-    <RichText className="project-description" value={description}/>
+    <p className="project-description">{projectSummary(description)}</p>
     {technologies.length > 0 && <div className="project-tech" aria-label="Technologies">{technologies.map((technology) => <span key={technology}>{technology}</span>)}</div>}
   </article>;
 }
@@ -237,12 +261,11 @@ function Projects({ rows = [] }) {
 
 function Certificates({ rows = [] }) {
   return <section className="content-section compact-section certificates-section" id="certificates"><SectionHeading number="04" eyebrow="ALWAYS LEARNING" title="Certificates." note="A few milestones along the way."/>
-    {rows.length ? <><div className="certificate-archive-line" aria-label={`${rows.length} certificate records`}><span>LEARNING ARCHIVE</span><span>{String(rows.length).padStart(2, "0")} RECORDS</span></div><div className="certificate-grid">{rows.map((item, index) => {
+    {rows.length ? <><div className="certificate-archive-line" aria-label={`${rows.length} certificate records`}><span>LEARNING ARCHIVE</span><span>{String(rows.length).padStart(2, "0")} RECORDS</span></div>
+    <div className="certificate-grid">{rows.map((item, index) => {
       const title = field(item, "title", "name") || "Certificate";
       const issuer = field(item, "issuer", "provider") || "Professional learning";
-      const image = certificateImageFor(item);
-      const link = certificateLinkFor(item);
-      return <CertificateCard key={`${title}-${index}`} title={title} issuer={issuer} date={field(item, "date")} link={link} image={image} index={index}/>;
+      return <CertificateCard key={`${title}-${index}`} title={title} issuer={issuer} date={field(item, "date")} link={certificateLinkFor(item)} image={certificateImageFor(item)} index={index}/>;
     })}</div></> : <EmptyState/>}
   </section>;
 }
@@ -256,7 +279,8 @@ function CertificateCard({ title, issuer, date, link, image, index }) {
       {hasImage ? <div className="certificate-card__image-frame"><img src={image} alt={`${title} certificate thumbnail`} loading="lazy" decoding="async" onError={() => setImageFailed(true)}/></div> : <div className="certificate-art" aria-hidden="true"><span className="certificate-art__kicker">PROFESSIONAL LEARNING</span><span className="certificate-art__seal">{issuerMark || "✳"}</span><span className="certificate-art__rule"/><span className="certificate-art__issuer">{issuer}</span><span className="certificate-art__serial">COURSE RECORD · {String(index + 1).padStart(2, "0")}</span></div>}
       <span className="certificate-card__index">{String(index + 1).padStart(2, "0")}</span>
     </div>
-    <div className="certificate-card__body"><div className="certificate-card__meta"><p className="certificate-card__issuer">{issuer}</p>{date && <span className="certificate-card__date">{date}</span>}</div><RichText className="certificate-card__title" value={title}/><div className="certificate-card__footer"><span>{hasImage ? "LEARNING RECORD" : "COURSE RECORD"}</span>{link && !certificateImageUrl(link) && <a href={externalUrl(link)} target="_blank" rel="noreferrer">Verify credential <span aria-hidden="true">↗</span></a>}</div></div>
+    <div className="certificate-card__body"><RichText className="certificate-card__title" value={title}/><div className="certificate-card__meta"><p className="certificate-card__issuer">{issuer}</p>{date && <span className="certificate-card__date">{date}</span>}</div></div>
+    {link && !certificateImageUrl(link) && <div className="certificate-card__footer"><a href={externalUrl(link)} target="_blank" rel="noreferrer" aria-label={`Verify ${title.replace(/<[^>]*>/g, "")} credential`}>Verify <span aria-hidden="true">↗</span></a></div>}
   </article>;
 }
 
@@ -286,10 +310,10 @@ function Leadership({ rows = [] }) {
 
 function Contact() {
   const [submitted, setSubmitted] = useState(false);
-  return <section className="contact-section" id="contact"><div className="contact-orbit"/><div className="contact-content"><p className="eyebrow">HAVE SOMETHING IN MIND?</p><h2>Let’s make it<br/><em>mean something.</em></h2><p>Have a project, role, or collaboration in mind? I’d love to hear about it.</p><div className="contact-buttons"><a href="mailto:dy19363@gmail.com" className="button button--light">Start a conversation</a><a className="contact-secondary" href="https://www.linkedin.com/in/deepak4728" target="_blank" rel="noreferrer">Find me on LinkedIn</a></div></div>
+  return <section className="contact-section" id="contact"><div className="contact-panel"><div className="contact-content"><p className="eyebrow">HAVE SOMETHING IN MIND?</p><h2>Let’s make it<br/><em>mean something.</em></h2><p>Have a project, role, or collaboration in mind? I’d love to hear about it.</p><div className="contact-buttons"><a href="mailto:dy19363@gmail.com" className="button button--light">Start a conversation</a><a className="contact-secondary" href="https://www.linkedin.com/in/deepak4728" target="_blank" rel="noreferrer">Find me on LinkedIn</a></div></div>
       <form className="contact-form" action="https://docs.google.com/forms/d/e/1FAIpQLSdKpzZCRoPdtvGFdCX-iDPi5PD6J02-Hk9p01cGZTHLlINavQ/formResponse" method="POST" target="_blank" onSubmit={() => setSubmitted(true)}>
         <p className="form-title">Or leave a note <span>REPLY WITHIN 24H</span></p><div className="form-pair"><label>Your name<input name="entry.2005620554" type="text" placeholder="Jane Doe" required/></label><label>Email address<input name="entry.276605624" type="email" placeholder="jane@email.com" required/></label></div><label>Phone number<input name="entry.1166974658" type="tel" placeholder="+91" required/></label><label>Subject<input name="entry.2093224432" type="text" placeholder="A little about your note" required/></label><label>Message<textarea name="entry.839337160" rows="3" placeholder="Tell me what you’re thinking…" required/></label><button className="button button--light form-submit" type="submit">{submitted ? "Opening form…" : "Send a message"}</button>
-      </form>
+      </form></div>
     </section>;
 }
 
@@ -327,6 +351,7 @@ function App() {
         const elementCenter = bounds.top + bounds.height / 2;
         const offset = Math.max(-maxShift, Math.min(maxShift, ((viewportCenter - elementCenter) / window.innerHeight) * 24));
         target.style.setProperty("--scroll-shift", `${offset.toFixed(1)}px`);
+
       });
     };
     const scheduleMotionUpdate = () => {
@@ -362,10 +387,10 @@ function App() {
     }, { rootMargin: "12% 0px 12% 0px" });
     const observeContent = () => {
       observeSections();
-      document.querySelectorAll(".content-section, .contact-section, .section-heading, .project-card, .experience-item, .certificate-item, .skill-group, .education-item").forEach((element) => {
+      document.querySelectorAll(".content-section, .contact-section, .section-heading, .project-card, .experience-item, .skill-group, .education-item").forEach((element) => {
         if (!observedForReveal.has(element)) { observedForReveal.add(element); revealObserver.observe(element); }
       });
-      document.querySelectorAll(".section-heading, .about-grid, .experience-item, .project-card, .certificate-item, .skill-group, .education-item, .contact-content, .contact-form").forEach((element) => {
+      document.querySelectorAll(".section-heading, .about-grid, .experience-item, .project-card, .skill-group, .education-item").forEach((element) => {
         if (!observedForMotion.has(element)) { observedForMotion.add(element); motionObserver.observe(element); }
       });
     };
