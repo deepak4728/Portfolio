@@ -127,8 +127,35 @@ function csvToObjects(csv) {
 }
 
 function asHTML(val = "") {
-  const v = String(val).trim();
-  return v.includes("<") ? v : escapeHtml(v);
+  const value = String(val ?? "").trim();
+  const allowedTags = new Set(["P", "B", "STRONG", "EM", "I", "BR", "UL", "OL", "LI", "A"]);
+  const hasSupportedMarkup = /<\s*\/?\s*(?:p|b|strong|em|i|br|ul|ol|li|a)\b/i.test(value);
+  if (!hasSupportedMarkup) return formatText(value);
+
+  const parsed = new DOMParser().parseFromString(value, "text/html");
+  const clean = (node) => {
+    if (node.nodeType === Node.TEXT_NODE) return document.createTextNode(node.textContent);
+    if (node.nodeType !== Node.ELEMENT_NODE) return document.createDocumentFragment();
+    if (!allowedTags.has(node.tagName)) {
+      const fragment = document.createDocumentFragment();
+      [...node.childNodes].forEach((child) => fragment.append(clean(child)));
+      return fragment;
+    }
+    const element = document.createElement(node.tagName.toLowerCase());
+    if (node.tagName === "A") {
+      const href = node.getAttribute("href") || "";
+      if (/^(https?:|mailto:|tel:)/i.test(href)) {
+        element.setAttribute("href", href);
+        element.setAttribute("target", "_blank");
+        element.setAttribute("rel", "noopener noreferrer");
+      }
+    }
+    [...node.childNodes].forEach((child) => element.append(clean(child)));
+    return element;
+  };
+  const root = document.createElement("div");
+  [...parsed.body.childNodes].forEach((child) => root.append(clean(child)));
+  return root.innerHTML;
 }
 
 // Summary Section
@@ -296,7 +323,7 @@ function renderWorkExperience(rows) {
       <div class="work-header">
         <div class="work-info">
           <h3 class="work-title">${asHTML(r.title || "")}</h3>
-          <p class="work-company">${asHTML(r.company || "")}</p>
+          <div class="work-company">${asHTML(r.company || "")}</div>
           <p class="work-location">${asHTML(r.location || "")}</p>
         </div>
         <div class="work-duration">${escapeHtml(r.duration || "")}</div>
@@ -316,7 +343,7 @@ function renderPositionsOfResponsibility(rows) {
       <div class="work-header">
         <div class="work-info">
           <h3 class="work-title">${asHTML(r.position || "")}</h3>
-          <p class="work-company">${asHTML(r.organisation || "")}</p>
+          <div class="work-company">${asHTML(r.organisation || "")}</div>
         </div>
         <div class="work-duration">${escapeHtml(r.duration || "")}</div>
       </div>

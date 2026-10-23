@@ -2,14 +2,25 @@ import React, { useEffect, useRef, useState } from "react";
 import { createRoot } from "react-dom/client";
 import * as Dialog from "@radix-ui/react-dialog";
 import * as ToggleGroup from "@radix-ui/react-toggle-group";
-import { field, loadPortfolio } from "./data.js";
+import { field, imageUrl, loadPortfolio } from "./data.js";
 const profileFallback = "/deepak-profile.png";
 import { SegmentedControl } from "./components/ui/segmented-control.jsx";
 import "../portfolio.css";
 
 const safeTags = new Set(["P", "B", "STRONG", "EM", "I", "BR", "UL", "OL", "LI", "A"]);
 function safeMarkup(markup = "") {
-  const parsed = new DOMParser().parseFromString(String(markup), "text/html");
+  const source = String(markup ?? "");
+  const parsed = new DOMParser().parseFromString(source, "text/html");
+  const root = document.createElement("div");
+  const hasSupportedMarkup = /<\s*\/?\s*(?:p|b|strong|em|i|br|ul|ol|li|a)\b/i.test(source);
+  if (!hasSupportedMarkup) {
+    const lines = parsed.body.textContent.replace(/\r/g, "").split(/\n+/);
+    lines.forEach((line, index) => {
+      if (index) root.append(document.createElement("br"));
+      root.append(document.createTextNode(line));
+    });
+    return { __html: root.innerHTML };
+  }
   const clean = (node) => {
     if (node.nodeType === Node.TEXT_NODE) return document.createTextNode(node.textContent);
     if (node.nodeType !== Node.ELEMENT_NODE) return document.createDocumentFragment();
@@ -30,7 +41,6 @@ function safeMarkup(markup = "") {
     [...node.childNodes].forEach((child) => element.append(clean(child)));
     return element;
   };
-  const root = document.createElement("div");
   [...parsed.body.childNodes].forEach((child) => root.append(clean(child)));
   return { __html: root.innerHTML };
 }
@@ -40,6 +50,27 @@ function RichText({ value, className }) {
 function externalUrl(url = "") {
   const value = url.trim();
   return value && !/^(https?:|mailto:|tel:|#)/i.test(value) ? `https://${value}` : value;
+}
+function certificateImageUrl(url = "") {
+  const source = String(url || "").replace(/\\([~_])/g, "$1").replace(/&amp;/gi, "&");
+  const markdownTarget = source.match(/\]\((https?:\/\/[^)]+)\)/i)?.[1];
+  const embeddedUrl = source.match(/https?:\/\/[^\s"'<>\\)]+/i)?.[0]?.replace(/[),.;]+$/, "");
+  const value = externalUrl((markdownTarget || embeddedUrl || source).trim());
+  if (!value) return "";
+  return /(?:googleusercontent\.com|drive\.google\.com\/(?:file\/d\/|open\?id=)|s3\.amazonaws\.com\/|\.(?:png|jpe?g|webp|gif|avif|svg)(?:[?#]|$))/i.test(value)
+    ? imageUrl(value)
+    : "";
+}
+function certificateImageFor(item = {}) {
+  const fields = Object.entries(item);
+  const imageField = fields.find(([key, value]) => /image|preview|photo|scan/i.test(key) && certificateImageUrl(value));
+  const anyImageField = fields.find(([, value]) => certificateImageUrl(value));
+  return certificateImageUrl(imageField?.[1] || anyImageField?.[1] || "");
+}
+function certificateLinkFor(item = {}) {
+  const fields = Object.entries(item);
+  const candidates = [field(item, "verification_link", "verification link", "credential_link", "certificate_link", "link", "url"), ...fields.map(([, value]) => value)].filter(Boolean);
+  return candidates.find((value) => !certificateImageUrl(value)) || candidates[0] || "";
 }
 const iconFor = (name = "") => ({
   github: "GH", linkedin: "in", email: "✉", portfolio: "◎", instagram: "◎", twitter: "𝕏", x: "𝕏",
@@ -58,11 +89,16 @@ function EmptyState({ children = "New details will appear here soon." }) {
   return <p className="empty-state">{children}</p>;
 }
 
+function BrandMark({ initials = "DY" }) {
+  const monogram = [...initials].slice(0, 2).join("") || "DY";
+  return <span className="wordmark-mark" aria-hidden="true"><span className="wordmark-monogram">{monogram}</span><svg className="wordmark-signal" viewBox="0 0 28 9" fill="none"><path d="M1 6.5h5l3-4 4.2 4.2 4-5 3 3.1H27"/><circle cx="27" cy="4.8" r="1.1"/></svg></span>;
+}
+
 function Topbar({ name, activeSection, darkMode, onToggleTheme, isScrolled }) {
   const navRef = useRef(null);
   const [indicator, setIndicator] = useState({ left: 0, width: 0 });
   const initials = initialsFor(name);
-  const navItems = [["about", "About"], ["experience", "Experience"], ["projects", "Projects"], ["skills", "Toolkit"], ["contact", "Contact"]];
+  const navItems = [["about", "About"], ["experience", "Experience"], ["projects", "Projects"], ["skills", "Toolkit"], ["leadership", "Leadership"]];
   useEffect(() => {
     const nav = navRef.current;
     if (!nav) return undefined;
@@ -76,7 +112,7 @@ function Topbar({ name, activeSection, darkMode, onToggleTheme, isScrolled }) {
     window.addEventListener("resize", syncIndicator);
     return () => { resizeObserver?.disconnect(); window.removeEventListener("resize", syncIndicator); };
   }, [activeSection]);
-  return <div className="topbar-slot"><header className={`topbar${isScrolled ? " is-scrolled" : ""}`}><a className="wordmark" href="#home" aria-label={`${name} home`}><span className="wordmark-mark" aria-hidden="true">{initials}</span><span>{name}</span></a>
+  return <div className="topbar-slot"><header className={`topbar${isScrolled ? " is-scrolled" : ""}`}><a className="wordmark" href="#home" aria-label={`${name} home`}><BrandMark initials={initials}/><span className="wordmark-name">{name}</span><span className="wordmark-status"><i aria-hidden="true"/>Available</span></a>
     <nav className="topnav" aria-label="Main navigation" ref={navRef} style={{ "--indicator-left": `${indicator.left}px`, "--indicator-width": `${indicator.width}px` }}>{navItems.map(([id, label]) => <a key={id} href={`#${id}`} aria-current={activeSection === id ? "location" : undefined}>{label}</a>)}<span className={`topnav-indicator${indicator.width ? " is-visible" : ""}`} aria-hidden="true"/></nav>
     <div className="topbar-actions"><button className="theme-toggle" onClick={onToggleTheme} type="button" aria-label={`Switch to ${darkMode ? "light" : "dark"} theme`} title={`Switch to ${darkMode ? "light" : "dark"} theme`}><span aria-hidden="true">{darkMode ? "☼" : "◐"}</span></button><a className="topbar-cta" href="#contact">Let’s talk</a></div>
   </header></div>;
@@ -84,30 +120,40 @@ function Topbar({ name, activeSection, darkMode, onToggleTheme, isScrolled }) {
 
 function Hero({ detail }) {
   const [stage, setStage] = useState(0);
+  const [autoPlay, setAutoPlay] = useState(() => !window.matchMedia("(prefers-reduced-motion: reduce)").matches);
   const name = field(detail, "name") || "Deepak Yadav";
   const role = field(detail, "role", "designation") || "Machine Learning & Data Science Engineer";
   const status = field(detail, "status") || "Open to opportunities";
   const avatar = profileFallback;
   const resume = field(detail, "resume_link", "resume");
   const stages = [
-    { label: "Data", detail: "Find the signal in the noise.", mark: "01" },
-    { label: "Model", detail: "Choose a method that fits.", mark: "02" },
-    { label: "Impact", detail: "Make the result useful.", mark: "03" },
+    { label: "Data", detail: "Find the signal in the noise.", lead: "Building with", headline: "data & intention.", mark: "01" },
+    { label: "Model", detail: "Choose a method that fits.", lead: "Building", headline: "models with care.", mark: "02" },
+    { label: "Impact", detail: "Make the result useful.", lead: "Turning", headline: "ideas into action.", mark: "03" },
   ];
+  useEffect(() => {
+    if (!autoPlay) return undefined;
+    const timer = window.setInterval(() => {
+      if (document.visibilityState !== "hidden") {
+        setStage((current) => (current + 1) % stages.length);
+      }
+    }, 4200);
+    return () => window.clearInterval(timer);
+  }, [autoPlay]);
   const moveSpotlight = (event) => {
     const bounds = event.currentTarget.getBoundingClientRect();
     event.currentTarget.style.setProperty("--pointer-x", `${event.clientX - bounds.left}px`);
     event.currentTarget.style.setProperty("--pointer-y", `${event.clientY - bounds.top}px`);
   };
   return <section className="hero" id="home" aria-labelledby="hero-title" onPointerMove={moveSpotlight}>
-    <div className="hero-copy"><p className="eyebrow hero-eyebrow"><span className="eyebrow-rule"/> PORTFOLIO <span className="eyebrow-year">2026</span></p>
-      <h1 id="hero-title">Building with<br/><span>data & intention.</span></h1>
+    <div className="hero-copy"><p className="eyebrow hero-eyebrow"><span className="eyebrow-rule"/> PORTFOLIO <span className="eyebrow-year">2026</span><span className="hand-note hero-meta-note" aria-hidden="true">field notes</span></p>
+      <h1 id="hero-title">{stages[stage].lead}<br/><span key={stage} className="hero-headline-shift">{stages[stage].headline}</span></h1>
       <p className="hero-description">I’m <strong>{name}</strong>, a {role.toLowerCase()} focused on turning complex ideas into useful, thoughtful products.</p>
       <div className="hero-actions"><a className="button button--dark" href="#projects">Explore my work</a>{resume && <a className="text-link" href={externalUrl(resume)} target="_blank" rel="noreferrer">Download résumé</a>}</div>
       <div className="availability"><span className="availability-dot"/><span>{status}</span></div>
     </div>
-    <div className="hero-visual"><div className="hero-orbit hero-orbit--one"/><div className="hero-orbit hero-orbit--two"/><div className="hero-portrait"><img src={avatar} alt={`${name}`} fetchPriority="high" onError={(event) => { event.currentTarget.src = profileFallback; }}/></div><div className="hero-tech-cloud" aria-label="Areas of focus"><span className="hero-tech-tile hero-tech-tile--ml"><b>ML</b><span>Machine learning</span></span><span className="hero-tech-tile hero-tech-tile--cv"><b>CV</b><span>Computer vision</span></span><span className="hero-tech-tile hero-tech-tile--data"><b>DS</b><span>Data science</span></span></div><div className="hero-stamp"><span>THOUGHTFUL<br/>BY DESIGN</span><span className="stamp-star">✳</span></div><span className="hero-index">01 / 06</span>
-      <div className="hero-lab" aria-label="Interactive machine learning workflow"><div className="hero-lab__top"><span><i/> THE BUILD LOOP</span><span>ML / DS</span></div><ToggleGroup.Root type="single" value={String(stage)} onValueChange={(value) => { if (value !== "") setStage(Number(value)); }} className="lab-steps" aria-label="Explore the build loop">{stages.map((item, index) => <React.Fragment key={item.mark}><ToggleGroup.Item value={String(index)} className="lab-step"><span>{item.mark}</span>{item.label}</ToggleGroup.Item>{index < stages.length - 1 && <span className="lab-connector" aria-hidden="true"/>}</React.Fragment>)}</ToggleGroup.Root><p key={stage} className="lab-caption" aria-live="polite"><span>0{stage + 1}</span> {stages[stage].detail}</p><div className="lab-wave" aria-hidden="true"><svg viewBox="0 0 300 36" preserveAspectRatio="none"><path d="M0 20 C20 20 24 7 42 8 S64 28 82 21 102 6 119 13 140 31 158 19 176 4 194 11 213 29 230 19 249 7 266 13 284 24 300 15"/><path d="M0 31 C25 29 30 22 48 23 S72 33 91 27 113 17 130 23 148 31 168 27 187 17 205 21 227 32 244 27 270 21 300 23"/></svg></div></div>
+    <div className="hero-visual"><div className="hero-orbit hero-orbit--one"/><div className="hero-orbit hero-orbit--two"/><div className="hero-portrait"><img src={avatar} alt={`${name}`} fetchPriority="high" onError={(event) => { event.currentTarget.src = profileFallback; }}/></div><div className="hero-tech-cloud" aria-label="Areas of focus"><span className="hero-tech-tile hero-tech-tile--ml"><b>ML</b><span>Machine learning</span></span><span className="hero-tech-tile hero-tech-tile--cv"><b>CV</b><span>Computer vision</span></span><span className="hero-tech-tile hero-tech-tile--data"><b>DS</b><span>Data science</span></span></div><span className="portrait-note portrait-note--top" aria-hidden="true">curious by nature</span><span className="portrait-note portrait-note--side" aria-hidden="true">find the signal</span><div className="hero-stamp"><span>THOUGHTFUL<br/>BY DESIGN</span><span className="stamp-star">✳</span></div><span className="hero-index">01 / 06</span>
+      <div className="hero-lab" aria-label="Interactive machine learning workflow"><div className="hero-lab__top"><span><i/> THE BUILD LOOP</span><span className="hero-lab__tools"><span>ML / DS</span><button type="button" onClick={() => setAutoPlay((playing) => !playing)} aria-label={`${autoPlay ? "Pause" : "Play"} workflow animation`}>{autoPlay ? "Pause" : "Play"}</button></span></div><ToggleGroup.Root type="single" value={String(stage)} onValueChange={(value) => { if (value !== "") setStage(Number(value)); }} className="lab-steps" aria-label="Explore the build loop">{stages.map((item, index) => <React.Fragment key={item.mark}><ToggleGroup.Item value={String(index)} className="lab-step"><span>{item.mark}</span>{item.label}</ToggleGroup.Item>{index < stages.length - 1 && <span className="lab-connector" aria-hidden="true"/>}</React.Fragment>)}</ToggleGroup.Root><p key={stage} className="lab-caption" aria-live="polite"><span>0{stage + 1}</span> {stages[stage].detail}</p><div className="lab-wave" aria-hidden="true"><svg viewBox="0 0 300 36" preserveAspectRatio="none"><path d="M0 20 C20 20 24 7 42 8 S64 28 82 21 102 6 119 13 140 31 158 19 176 4 194 11 213 29 230 19 249 7 266 13 284 24 300 15"/><path d="M0 31 C25 29 30 22 48 23 S72 33 91 27 113 17 130 23 148 31 168 27 187 17 205 21 227 32 244 27 270 21 300 23"/></svg></div></div>
     </div>
     <div className="hero-bottom"><span>SCROLL TO EXPLORE</span><span className="scroll-line"/><span>JODHPUR, INDIA · IST</span></div>
   </section>;
@@ -190,27 +236,50 @@ function Projects({ rows = [] }) {
 }
 
 function Certificates({ rows = [] }) {
-  return <section className="content-section compact-section" id="certificates"><SectionHeading number="04" eyebrow="ALWAYS LEARNING" title="Certificates."/>
-    {rows.length ? <div className="certificate-list">{rows.map((item,index) => <article className="certificate-item" key={`${field(item,"title","name")}-${index}`}><span className="certificate-icon">✳</span><div><RichText className="certificate-title" value={field(item,"title","name")}/><p>{field(item,"issuer","provider")}{field(item,"date") ? ` · ${field(item,"date")}` : ""}</p></div>{field(item,"link") && <a href={externalUrl(field(item,"link"))} target="_blank" rel="noreferrer" aria-label="View certificate">View</a>}</article>)}</div> : <EmptyState/>}
+  return <section className="content-section compact-section certificates-section" id="certificates"><SectionHeading number="04" eyebrow="ALWAYS LEARNING" title="Certificates." note="A few milestones along the way."/>
+    {rows.length ? <><div className="certificate-archive-line" aria-label={`${rows.length} certificate records`}><span>LEARNING ARCHIVE</span><span>{String(rows.length).padStart(2, "0")} RECORDS</span></div><div className="certificate-grid">{rows.map((item, index) => {
+      const title = field(item, "title", "name") || "Certificate";
+      const issuer = field(item, "issuer", "provider") || "Professional learning";
+      const image = certificateImageFor(item);
+      const link = certificateLinkFor(item);
+      return <CertificateCard key={`${title}-${index}`} title={title} issuer={issuer} date={field(item, "date")} link={link} image={image} index={index}/>;
+    })}</div></> : <EmptyState/>}
   </section>;
 }
 
+function CertificateCard({ title, issuer, date, link, image, index }) {
+  const [imageFailed, setImageFailed] = useState(false);
+  const hasImage = Boolean(image) && !imageFailed;
+  const issuerMark = issuer.split(/\s+/).filter(Boolean).slice(0, 2).map((part) => part[0]).join("").toUpperCase();
+  return <article className="certificate-card">
+    <div className={`certificate-card__visual${hasImage ? " has-image" : ""}`}>
+      {hasImage ? <div className="certificate-card__image-frame"><img src={image} alt={`${title} certificate thumbnail`} loading="lazy" decoding="async" onError={() => setImageFailed(true)}/></div> : <div className="certificate-art" aria-hidden="true"><span className="certificate-art__kicker">PROFESSIONAL LEARNING</span><span className="certificate-art__seal">{issuerMark || "✳"}</span><span className="certificate-art__rule"/><span className="certificate-art__issuer">{issuer}</span><span className="certificate-art__serial">COURSE RECORD · {String(index + 1).padStart(2, "0")}</span></div>}
+      <span className="certificate-card__index">{String(index + 1).padStart(2, "0")}</span>
+    </div>
+    <div className="certificate-card__body"><div className="certificate-card__meta"><p className="certificate-card__issuer">{issuer}</p>{date && <span className="certificate-card__date">{date}</span>}</div><RichText className="certificate-card__title" value={title}/><div className="certificate-card__footer"><span>{hasImage ? "LEARNING RECORD" : "COURSE RECORD"}</span>{link && !certificateImageUrl(link) && <a href={externalUrl(link)} target="_blank" rel="noreferrer">Verify credential <span aria-hidden="true">↗</span></a>}</div></div>
+  </article>;
+}
+
 function Skills({ rows = [] }) {
-  const grouped = rows.reduce((groups, item) => { const group = field(item,"category") || "Core toolkit"; (groups[group] ||= []).push(field(item,"name","Skill","tech") || "Skill"); return groups; }, {});
+  const [filter, setFilter] = useState("All skills");
+  const categoryFor = (item) => field(item,"category","Category","skill category","Skill Category");
+  const categories = [...new Set(rows.map(categoryFor).filter(Boolean))];
+  const visibleRows = filter === "All skills" ? rows : rows.filter((item) => categoryFor(item) === filter);
+  const grouped = visibleRows.reduce((groups, item) => { const group = categoryFor(item) || "Core toolkit"; (groups[group] ||= []).push(field(item,"name","Skill","tech") || "Skill"); return groups; }, {});
   return <section className="content-section skills-section" id="skills"><SectionHeading number="05" eyebrow="THINGS I WORK WITH" title="Skills & toolkit." note="The tools are only part of the craft."/>
-    {rows.length ? <div className="skill-groups">{Object.entries(grouped).map(([group, skills]) => <div className="skill-group" key={group}><h3>{group}</h3><div className="skill-tags">{skills.map((skill,index) => <span className="skill-tag" key={`${skill}-${index}`}>{skill}</span>)}</div></div>)}</div> : <EmptyState/>}
+    {rows.length ? <>{categories.length > 1 && <SegmentedControl className="project-filters skill-filters" itemClassName="project-filters__item" label="Filter skills by category" value={filter} onValueChange={setFilter} items={[{ value: "All skills", label: "All skills" }, ...categories.map((category) => ({ value: category, label: category }))]}/>}<div className="skill-groups">{Object.entries(grouped).map(([group, skills], groupIndex) => <article className="skill-group" key={group}><div className="skill-group__header"><span className="skill-group__index">{String(groupIndex + 1).padStart(2, "0")}</span><div><p className="skill-group__eyebrow">TOOLS IN PRACTICE</p><h3>{group}</h3></div><span className="skill-group__count">{String(skills.length).padStart(2, "0")} tools</span></div><div className="skill-tags">{skills.map((skill,index) => <span className="skill-tag" key={`${skill}-${index}`}>{skill}</span>)}</div></article>)}</div></> : <EmptyState/>}
   </section>;
 }
 
 function Education({ rows = [] }) {
   return <section className="content-section" id="education"><SectionHeading number="06" eyebrow="THE FOUNDATIONS" title="Education."/>
-    {rows.length ? <div className="education-list">{rows.map((item,index) => <article className="education-item" key={`${field(item,"institution","college")}-${index}`}><div><h3>{field(item,"degree","qualification")}</h3><p>{field(item,"institution","college","school")}{field(item,"specialization","branch") ? ` · ${field(item,"specialization","branch")}` : ""}</p>{field(item,"description","desc") && <p className="education-description">{field(item,"description","desc")}</p>}</div><span className="date-chip">{field(item,"duration","period","year")}</span></article>)}</div> : <EmptyState/>}
+    {rows.length ? <div className="education-list">{rows.map((item,index) => <article className="education-item" key={`${field(item,"institution","college")}-${index}`}><span className="education-item__index">{String(index + 1).padStart(2, "0")}</span><div className="education-item__details"><h3>{field(item,"degree","qualification")}</h3><p className="education-item__institution">{field(item,"institution","college","school")}</p>{field(item,"specialization","branch") && <span className="education-item__focus">{field(item,"specialization","branch")}</span>}{field(item,"description","desc") && <p className="education-description">{field(item,"description","desc")}</p>}</div><div className="education-item__meta">{field(item,"duration","period","year") && <span className="date-chip">{field(item,"duration","period","year")}</span>}{field(item,"location","city","place") && <span className="education-item__location">{field(item,"location","city","place")}</span>}</div></article>)}</div> : <EmptyState/>}
   </section>;
 }
 
 function Leadership({ rows = [] }) {
   if (!rows.length) return null;
-  return <section className="content-section compact-section"><SectionHeading number="07" eyebrow="BEYOND THE JOB TITLE" title="Community & leadership."/>
+  return <section className="content-section compact-section" id="leadership"><SectionHeading number="07" eyebrow="BEYOND THE JOB TITLE" title="Community & leadership."/>
     <div className="experience-list">{rows.map((item,index) => <article className="experience-item" key={`${field(item,"organisation")}-${index}`}><span className="timeline-marker"/><div className="experience-main"><RichText className="experience-company" value={field(item,"organisation")}/><RichText className="experience-title" value={field(item,"position")}/><RichText className="experience-description" value={field(item,"description")}/></div><span className="date-chip">{field(item,"duration")}</span></article>)}</div>
   </section>;
 }
@@ -267,11 +336,14 @@ function App() {
     updateProgress();
     window.addEventListener("scroll", handleScroll, { passive: true });
     window.addEventListener("resize", handleScroll);
-    const sections = document.querySelectorAll("#about, #experience, #projects, #skills, #contact");
+    const observedSections = new WeakSet();
     const observer = new IntersectionObserver((entries) => {
       entries.forEach((entry) => { if (entry.isIntersecting) setActiveSection(entry.target.id); });
     }, { rootMargin: "-22% 0px -68% 0px" });
-    sections.forEach((section) => observer.observe(section));
+    const observeSections = () => document.querySelectorAll("#about, #experience, #projects, #skills, #leadership, #contact").forEach((section) => {
+      if (!observedSections.has(section)) { observedSections.add(section); observer.observe(section); }
+    });
+    observeSections();
     const revealObserver = new IntersectionObserver((entries, currentObserver) => {
       entries.forEach((entry) => { if (entry.isIntersecting) { const index = [...entry.target.parentElement.children].indexOf(entry.target); entry.target.style.setProperty("--reveal-delay", `${Math.min(Math.max(index, 0), 5) * 65}ms`); entry.target.classList.add("in-view"); currentObserver.unobserve(entry.target); } });
     }, { threshold: 0.08 });
@@ -289,6 +361,7 @@ function App() {
       scheduleMotionUpdate();
     }, { rootMargin: "12% 0px 12% 0px" });
     const observeContent = () => {
+      observeSections();
       document.querySelectorAll(".content-section, .contact-section, .section-heading, .project-card, .experience-item, .certificate-item, .skill-group, .education-item").forEach((element) => {
         if (!observedForReveal.has(element)) { observedForReveal.add(element); revealObserver.observe(element); }
       });
@@ -319,7 +392,7 @@ function App() {
   const content = data || {};
   const detail = content.details?.[0] || {};
   const name = field(detail,"name") || "Deepak Yadav";
-  return <div className={`app-shell ${darkMode ? "theme-dark" : ""}`}><div className="scroll-progress" aria-hidden="true"/><Topbar name={name} activeSection={activeSection} darkMode={darkMode} isScrolled={isScrolled} onToggleTheme={toggleTheme}/><main><Hero detail={detail}/><div className="page-content"><About rows={content.summary || []} socials={content.socialLinks || []}/><Experience rows={content.workExperience || []}/><Projects rows={content.projects || []}/><Certificates rows={content.certificates || []}/><Skills rows={content.skills || []}/><Education rows={content.education || []}/><Leadership rows={content.positions || []}/><Contact/></div></main><footer className="site-footer"><a className="wordmark" href="#home"><span className="wordmark-mark" aria-hidden="true">{initialsFor(name)}</span><span>{name}</span></a><span>DESIGNED WITH INTENTION · {new Date().getFullYear()}</span><a href="#home">BACK TO TOP</a></footer><nav className="mobile-nav" aria-label="Mobile navigation"><a href="#about" aria-current={activeSection === "about" ? "location" : undefined}>About</a><a href="#experience" aria-current={activeSection === "experience" ? "location" : undefined}>Experience</a><a href="#projects" aria-current={activeSection === "projects" ? "location" : undefined}>Work</a><a href="#contact" aria-current={activeSection === "contact" ? "location" : undefined}>Contact</a></nav></div>;
+  return <div className={`app-shell ${darkMode ? "theme-dark" : ""}`}><div className="scroll-progress" aria-hidden="true"/><Topbar name={name} activeSection={activeSection} darkMode={darkMode} isScrolled={isScrolled} onToggleTheme={toggleTheme}/><main><Hero detail={detail}/><div className="page-content"><About rows={content.summary || []} socials={content.socialLinks || []}/><Experience rows={content.workExperience || []}/><Projects rows={content.projects || []}/><Certificates rows={content.certificates || []}/><Skills rows={content.skills || []}/><Education rows={content.education || []}/><Leadership rows={content.positions || []}/><Contact/></div></main><footer className="site-footer"><a className="wordmark" href="#home"><BrandMark initials={initialsFor(name)}/><span>{name}</span></a><span>DESIGNED WITH INTENTION · {new Date().getFullYear()}</span><a href="#home">BACK TO TOP</a></footer><nav className="mobile-nav" aria-label="Mobile navigation"><a href="#about" aria-current={activeSection === "about" ? "location" : undefined}>About</a><a href="#experience" aria-current={activeSection === "experience" ? "location" : undefined}>Experience</a><a href="#projects" aria-current={activeSection === "projects" ? "location" : undefined}>Work</a><a href="#leadership" aria-current={activeSection === "leadership" ? "location" : undefined}>Leadership</a></nav></div>;
 }
 
 createRoot(document.getElementById("root")).render(<React.StrictMode><App/></React.StrictMode>);

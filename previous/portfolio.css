@@ -796,6 +796,9 @@ section h2, .section-head h2 {
   font-weight: 600;
 }
 
+.work-company p {
+  margin: 0;
+}
 .work-location {
   margin: 6px 0 0 0;
   color: #999;
@@ -826,6 +829,8 @@ section h2, .section-head h2 {
   transition: max-height 0.35s ease, opacity 0.25s ease, margin-top 0.25s ease;
 }
 
+.work-desc p { margin: 0 0 4px; }
+.work-desc p:last-child { margin-bottom: 0; }
 .work-item:hover .work-desc {
   max-height: 500px;
   opacity: 1;
